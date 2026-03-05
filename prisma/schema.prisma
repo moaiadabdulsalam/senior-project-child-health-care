@@ -1,0 +1,282 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+/**
+ * ----***** ENUMS *****----
+ */
+
+enum Role {
+  CHILD
+  PARENT
+  DOCTOR
+  ADMIN
+}
+
+enum DoctorStatus {
+  PENDING
+  VERIFYING
+  CONFIRMING
+}
+
+enum Gender {
+  Male
+  Female
+}
+
+enum WeekDay {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+}
+
+enum ExceptionType {
+  OFF
+  CUSTOM_HOUR
+}
+
+enum Currency {
+  USD
+  SYR
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum AppointmentStatus {
+  NO_SHOW
+  CANCELLED
+  COMPLETED
+  CONFIRMED
+}
+
+enum MedicineUnit {
+  ml
+  tablet
+  dose
+  drop
+}
+
+/**
+ * ----***** MODELS *****----
+ */
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  role         Role
+  isActive     Boolean? @default(true)
+
+  profileParent  ProfileParent?
+  profileDoctory ProfileDoctor?
+  notification   Notification[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email])
+}
+
+model ProfileParent {
+  id     String @id @default(uuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  fullName       String
+  fullNameArabic String?
+  phone          String
+  address        String?
+  addressArabic  String?
+
+  child       Child[]
+  appointment Appointment[]
+  payment     Payment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model ProfileDoctor {
+  id     String @id @default(uuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  fullName            String
+  fullNameArabic      String?
+  speciality          String
+  specialityArabic    String?
+  description         String?
+  phone               String
+  clinicPhone         String?
+  clinicAddress       String?
+  clinicAddressArabic String?
+  clinicName          String?
+  clinicNameArabic    String?
+  status              DoctorStatus
+
+  exception          Exception[]
+  appointment        Appointment[]
+  availabilityPolicy AvailabilityPolicy?
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+
+  @@index([userId, speciality])
+}
+
+model Child {
+  id            String        @id @default(uuid())
+  parentId      String
+  profileParent ProfileParent @relation(fields: [parentId], references: [id], onDelete: Cascade)
+
+  fullName    String
+  fullNameArabic String?
+  gender      Gender
+  birthDate   DateTime
+  bloodType   String?
+  loginHandle String
+  photo       String?
+
+  appointment Appointment[]
+  medication  Medication[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@unique([fullName, parentId])
+  @@index([fullName, parentId])
+}
+
+model AvailabilityPolicy {
+  id            String        @id @default(uuid())
+  userId        String        @unique
+  profileDoctor ProfileDoctor @relation(fields: [userId], references: [id], onDelete: Cascade)
+  weeklyOffDays WeekDay[]
+  startWork     DateTime
+  endWork       DateTime
+  slot          Int
+  breakStart    DateTime?
+  breakEnd      DateTime?
+  sessionPrice  Decimal       @db.Decimal(6, 2)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@index([slot, startWork, endWork])
+}
+
+model Exception {
+  id String @id @default(uuid())
+
+  doctorId      String
+  profileDoctor ProfileDoctor @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+
+  reason    String?
+  type      ExceptionType
+  startTime DateTime
+  endTime   DateTime
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([startTime, endTime])
+}
+
+model Notification {
+  id      String  @id @default(uuid())
+  userId  String
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title   String
+  message String
+  isRead  Boolean @default(false)
+
+  sentAt DateTime?
+  readAt DateTime?
+
+  from      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model Payment {
+  id String @id @default(uuid())
+
+  amount        Decimal     @db.Decimal(6, 2)
+  appointmentId String      @unique
+  appointment   Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+
+  parentId      String
+  profileParent ProfileParent @relation(fields: [parentId], references: [id], onDelete: Cascade)
+
+  currency  Currency
+  status    PaymentStatus
+  paidAt    DateTime?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@index([appointmentId, parentId])
+}
+
+model Appointment {
+  id String @id @default(uuid())
+
+  doctorId      String
+  profileDoctor ProfileDoctor @relation(fields: [doctorId], references: [id])
+
+  childId String
+  child   Child  @relation(fields: [childId], references: [id])
+
+  parentId      String
+  profileParent ProfileParent @relation(fields: [parentId], references: [id])
+
+  payment   Payment?
+  status    AppointmentStatus
+  date      DateTime
+  notes     Json?
+  reason    String
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+
+  @@index([doctorId, childId, parentId])
+}
+
+model Medication {
+  id String @id @default(uuid())
+
+  childId String
+  child   Child  @relation(fields: [childId], references: [id], onDelete: Cascade)
+
+  medicineName   String
+  mdeicineNameArabic String?
+  medicineUnit   MedicineUnit
+  medicineAmount String
+  Duration       DateTime
+  amountPerDay   String
+  firstDoseTime  DateTime
+  firstDoseDate  DateTime
+  rememberTime   String
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([medicineName, childId])
+}
