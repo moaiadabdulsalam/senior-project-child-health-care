@@ -149,13 +149,13 @@ model Child {
   parentId      String
   profileParent ProfileParent @relation(fields: [parentId], references: [id], onDelete: Cascade)
 
-  fullName    String
+  fullName       String
   fullNameArabic String?
-  gender      Gender
-  birthDate   DateTime
-  bloodType   String?
-  loginHandle String
-  photo       String?
+  gender         Gender
+  birthDate      DateTime
+  bloodType      String?
+  loginHandle    String
+  photo          String?
 
   appointment Appointment[]
   medication  Medication[]
@@ -266,17 +266,28 @@ model Medication {
   childId String
   child   Child  @relation(fields: [childId], references: [id], onDelete: Cascade)
 
-  medicineName   String
+  medicineName       String
   mdeicineNameArabic String?
-  medicineUnit   MedicineUnit
-  medicineAmount String
-  Duration       DateTime
-  amountPerDay   String
-  firstDoseTime  DateTime
-  firstDoseDate  DateTime
-  rememberTime   String
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  medicineUnit       MedicineUnit
+  medicineAmount     String
+  Duration           DateTime
+  amountPerDay       String
+  firstDoseTime      DateTime
+  firstDoseDate      DateTime
+  rememberTime       String
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
 
   @@index([medicineName, childId])
+}
+
+model PasswordChange {
+  id        String   @id @default(uuid())
+  email     String
+  otp       String
+  expireAt  DateTime
+  used      Boolean
+  createdAt DateTime @default(now())
+
+  @@index([email])
 }

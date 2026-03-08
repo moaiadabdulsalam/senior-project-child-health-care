@@ -4,6 +4,7 @@ import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './modules/auth/auth.module';
 import { CoreModule } from './core/core.module';
 import { ChildModule } from './modules/child/child.module';
+import { RedisModule } from './redis/redis.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { ChildModule } from './modules/child/child.module';
     AuthModule,
     CoreModule,
     ChildModule,
+    RedisModule,
   ],
 })
 export class AppModule {}

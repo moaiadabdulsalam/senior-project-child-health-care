@@ -13,8 +13,6 @@ type RegisterUserInfoResult = Prisma.UserGetPayload<{
   };
 }>;
 
-
-
 @Injectable()
 export class AuthRepository {
   constructor(private readonly prisma: PrismaService) {}
@@ -27,14 +25,14 @@ export class AuthRepository {
 
     return client.user.create({
       data,
-      select:{
-        id : true , 
-        email : true , 
-        role : true,
-        createdAt: true , 
-        updatedAt : true ,
-        isActive :true,
-      }
+      select: {
+        id: true,
+        email: true,
+        role: true,
+        createdAt: true,
+        updatedAt: true,
+        isActive: true,
+      },
     });
   }
 
@@ -43,6 +41,12 @@ export class AuthRepository {
       where: {
         email,
       },
+    });
+  }
+  async updateUserPassword(id: string, data: string) {
+    await this.prisma.user.update({
+      where: { id },
+      data,
     });
   }
 }

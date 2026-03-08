@@ -7,8 +7,9 @@ import { JwtModule } from '@nestjs/jwt';
 import { JwtAuthGuard } from './guard/jwt.guard';
 import { ProfileParentRepository } from './repositories/profileParent.repository';
 import { ProfileDoctorRepository } from './repositories/profileDoctory.repository';
+import { RedisModule } from 'src/redis/redis.module';
 @Module({
-  imports: [JwtModule.register({})],
+  imports: [JwtModule.register({}) , RedisModule],
   controllers: [AuthController],
   providers: [AuthService, jwtStrategy, AuthRepository, JwtAuthGuard , ProfileParentRepository , ProfileDoctorRepository],
   exports: [AuthService, JwtAuthGuard],
