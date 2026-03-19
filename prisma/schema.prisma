@@ -85,7 +85,7 @@ model User {
   passwordHash String
   role         Role
   isActive     Boolean? @default(true)
-
+  hashedRefreshToken String?
   profileParent  ProfileParent?
   profileDoctory ProfileDoctor?
   notification   Notification[]

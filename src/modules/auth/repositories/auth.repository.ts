@@ -43,10 +43,27 @@ export class AuthRepository {
       },
     });
   }
+
+  async findUserById(userId: string): Promise<User | null> {
+    return this.prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+    });
+  }
   async updateUserPassword(id: string, data: string) {
     await this.prisma.user.update({
       where: { id },
       data,
+    });
+  }
+
+  async updateUserRefreshToken(id: string, newRefreshToken: string | null) {
+    await this.prisma.user.update({
+      where: { id },
+      data: {
+        hashedRefreshToken: newRefreshToken,
+      },
     });
   }
 }

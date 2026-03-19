@@ -1,15 +1,25 @@
-import { Body, Controller, Get, Param, Post, Req } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Req, Res, UseGuards } from '@nestjs/common';
 import { AuthService } from '../services/auth.service';
 import { RegisterDoctorDto } from '../dtos/registerDoctor.dto';
 import { RegisterParentDto } from '../dtos/registerParent.dto';
 import { LoginDto } from '../dtos/login.dto';
-import { forgotPasswordEmailDto } from '../dtos/forgotPasswordEmail.dto';
+import { SendEmailDto } from '../dtos/sendEmail';
 import { VerifyOtpDto } from '../dtos/verifyOtp.dto';
 import { ResetPasswordDto } from '../dtos/resetPassword.dto';
+import { CookieService } from '../services/cookie.service';
+import { Response } from 'express';
+import { JwtAuthGuard } from '../guard/jwt.guard';
+import { RefreshTokenGuard } from '../guard/refreshToken.guard';
+import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
 
+
+@UseGuards(ThrottlerGuard)
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private cookieService: CookieService,
+  ) {}
 
   @Post('/register-doctor')
   registerDoctor(@Body() dto: RegisterDoctorDto) {
@@ -21,14 +31,23 @@ export class AuthController {
     return this.authService.registerParent(dto);
   }
 
+  @Throttle({default:{limit:5 , ttl : 60_000}})
   @Post('/login')
-  login(@Body() dto: LoginDto) {
-    return this.authService.login(dto);
+  async login(@Body() dto: LoginDto, @Res({ passthrough: true }) res: Response) {
+    const result = await this.authService.login(dto);
+
+    this.cookieService.setRefreshToken(res, result.refreshToken);
+
+    return {
+      user: result.user,
+      accessToken: result.accessToken,
+    };
   }
 
   @Post('/forgot-password')
-  forgetPassword(@Body() email: forgotPasswordEmailDto) {
-    return this.authService.forgotPassword(email);
+  @Throttle({default:{limit:1, ttl : 60_000}})
+  forgetPassword(@Body() email: SendEmailDto) {
+    return this.authService.sendOtp(email);
   }
 
   @Post('/verify-code')
@@ -39,5 +58,39 @@ export class AuthController {
   @Post('/reset-password/:id')
   resetPassword(@Body() dto: ResetPasswordDto, @Param() id: string) {
     return this.authService.resetPassword(dto, id);
+  }
+
+  @UseGuards(RefreshTokenGuard)
+  @Throttle({default:{limit:3, ttl : 60_000}})
+  @Post('/refresh-token')
+  async refreshToken(@Req() req, @Res({ passthrough: true }) res: Response) {
+    const { userId, refreshToken } = req.user;
+    const result = await this.authService.refresh(userId, refreshToken);
+    this.cookieService.setRefreshToken(res, result.refreshToken);
+
+    return { accessToken: result.accessToken };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('logout')
+  async logout(@Req() req , @Res({ passthrough: true }) res: Response) {
+    const { userId } = req.user;
+    await this.authService.logout(userId);
+    this.cookieService.clearRefreshToken(res);
+    return {
+      message: 'Logged out successfuly',
+    };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('me')
+  async getMe(@Req() req) {
+    return req.user;
+  }
+
+  @Post('/resend-otp')
+  @Throttle({default:{limit:1, ttl : 60_000}})
+  resendOtp(@Body() email:SendEmailDto) {
+    return this.authService.resendOtp(email)
   }
 }

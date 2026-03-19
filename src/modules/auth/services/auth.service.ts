@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { RegisterParentDto } from '../dtos/registerParent.dto';
 import { RegisterDoctorDto } from '../dtos/registerDoctor.dto';
 import { AuthRepository } from '../repositories/auth.repository';
@@ -9,12 +14,11 @@ import { ProfileParentRepository } from '../repositories/profileParent.repositor
 import { LoginDto } from '../dtos/login.dto';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { forgotPasswordEmailDto } from '../dtos/forgotPasswordEmail.dto';
+import { SendEmailDto } from '../dtos/sendEmail';
 import * as nodemailer from 'nodemailer';
 import { RedisService } from 'src/redis/redis.service';
 import { VerifyOtpDto } from '../dtos/verifyOtp.dto';
 import { ResetPasswordDto } from '../dtos/resetPassword.dto';
-
 @Injectable()
 export class AuthService {
   constructor(
@@ -27,7 +31,7 @@ export class AuthService {
     private readonly redis: RedisService,
   ) {}
 
-  private async signJwt(user: any) {
+  private async signAccessToken(user: any) {
     if (!user) {
       throw new BadRequestException('Invalid user data for token generation');
     }
@@ -35,6 +39,7 @@ export class AuthService {
     const payload = {
       userId: user.id,
       role: user.role,
+      email: user.email,
     };
 
     const accessToken = await this.jwt.signAsync(payload, {
@@ -43,6 +48,28 @@ export class AuthService {
     });
 
     return accessToken;
+  }
+
+  private async signRefreshToken(user: any) {
+    if (!user) {
+      throw new BadRequestException('Invalid user data for token generation');
+    }
+    const secret = this.config.get('JWT_REFRESH_SECRET');
+    if (!secret) {
+      throw new BadRequestException('Missing JWT_REFRESH_SECRET');
+    }
+    const payload = {
+      userId: user.id,
+      role: user.role,
+      email: user.email,
+    };
+
+    const refreshToken =  await this.jwt.signAsync(payload, {
+      secret,
+      expiresIn: '7d',
+    });
+
+    return refreshToken
   }
   private getTransporter() {
     return nodemailer.createTransport({
@@ -56,7 +83,7 @@ export class AuthService {
     });
   }
 
-  async sendOtp(email: string, otp: string) {
+  async sendOtpToEmail(email: string, otp: string) {
     try {
       const transporter = this.getTransporter();
       const fromEmail = this.config.get<string>('SMTP_EMAIL');
@@ -112,7 +139,7 @@ export class AuthService {
         },
         tx,
       );
-      const accessToken = await this.signJwt(user);
+      const accessToken = await this.signAccessToken(user);
       return { accessToken, user, parent };
     });
   }
@@ -150,7 +177,7 @@ export class AuthService {
         },
         tx,
       );
-      const accessToken = await this.signJwt(user);
+      const accessToken = await this.signAccessToken(user);
 
       return { accessToken, user, doctor };
     });
@@ -166,12 +193,16 @@ export class AuthService {
     if (!comaprePassword) {
       throw new BadRequestException("email or password doesn't exist");
     }
-    const accessToken = await this.signJwt(user);
+    const accessToken = await this.signAccessToken(user);
+    const refreshToken = await this.signRefreshToken(user);
 
-    return { accessToken, email: user.email, role: user.role };
+    const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
+
+    await this.userRepo.updateUserRefreshToken(user.id, hashedRefreshToken);
+
+    return { accessToken, refreshToken, user: { email: user.email, role: user.role } };
   }
-
-  async forgotPassword(dto: forgotPasswordEmailDto) {
+  async sendOtp(dto: SendEmailDto) {
     const user = await this.userRepo.findUserByEmail(dto.email);
     if (!user) {
       throw new NotFoundException('email not found');
@@ -179,16 +210,15 @@ export class AuthService {
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-    const hashedOtp = await bcrypt.hash(otp , 10)
+    const hashedOtp = await bcrypt.hash(otp, 10);
 
     await this.redis.set(`otp:${dto.email}`, hashedOtp, 300);
 
-    await this.sendOtp(dto.email, otp);
+    await this.sendOtpToEmail(dto.email, otp);
 
     return {
       message: ' Otp Send ',
     };
-
   }
 
   async verifyOtp(dto: VerifyOtpDto) {
@@ -197,8 +227,8 @@ export class AuthService {
     if (!storedOtp) {
       throw new BadRequestException('Otp expire');
     }
-    
-    const isMatch = await bcrypt.compare(dto.otp , storedOtp)
+
+    const isMatch = await bcrypt.compare(dto.otp, storedOtp);
 
     if (!isMatch) {
       throw new BadRequestException('Invalid Otp');
@@ -225,5 +255,48 @@ export class AuthService {
     };
   }
 
+  async logout(userId: string) {
+    await this.userRepo.updateUserRefreshToken(userId, null);
+    return {
+      message: 'Logged out successfuly',
+    };
+  }
 
+  async refresh(userId: string, refreshToken: string) {
+    if (!refreshToken) {
+      throw new UnauthorizedException('Refresh token not found');
+    }
+    const user = await this.userRepo.findUserById(userId);
+    if (!user || !user.hashedRefreshToken) {
+      throw new UnauthorizedException('Access Denied');
+    }
+    const isRefreshedTokenValid = await bcrypt.compare(refreshToken, user.hashedRefreshToken);
+    if (!isRefreshedTokenValid) {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
+
+    const accessToken = await this.signAccessToken(user);
+    const newRefreshToken = await this.signRefreshToken(user);
+    
+    const hashRefresh = await bcrypt.hash(newRefreshToken, 10);
+
+    await this.userRepo.updateUserRefreshToken(user.id, hashRefresh);
+
+    return { refreshToken: newRefreshToken, accessToken };
+  }
+
+  async resendOtp(dto: SendEmailDto) {
+    const user = await this.userRepo.findUserByEmail(dto.email);
+    if (!user) {
+      throw new NotFoundException('email not found');
+    }
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const hashedOtp = await bcrypt.hash(otp, 10);
+    await this.redis.set(`otp:${dto.email}`, hashedOtp, 300);
+    await this.sendOtpToEmail(dto.email, otp);
+    return {
+      message: 'Otp Resend',
+    };
+  }
 }

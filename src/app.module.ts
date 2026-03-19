@@ -5,6 +5,8 @@ import { AuthModule } from './modules/auth/auth.module';
 import { CoreModule } from './core/core.module';
 import { ChildModule } from './modules/child/child.module';
 import { RedisModule } from './redis/redis.module';
+import { AppointmentModule } from './modules/appointment/appointment.module';
+import { StatisticalModule } from './modules/statistical/statistical.module';
 
 @Module({
   imports: [
@@ -16,6 +18,8 @@ import { RedisModule } from './redis/redis.module';
     CoreModule,
     ChildModule,
     RedisModule,
+    AppointmentModule,
+    StatisticalModule,
   ],
 })
 export class AppModule {}
