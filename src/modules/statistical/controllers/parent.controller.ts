@@ -9,3 +9,7 @@ export class ParentController {
 }
 
 
+/*
+child photo if exit + age of child , a medicine ,   an appointment if exist ,  
+*/
+

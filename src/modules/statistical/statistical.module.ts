@@ -5,11 +5,14 @@ import { ParentController } from './controllers/parent.controller';
 import { DoctorController } from './controllers/doctor.controller';
 import { AdminService } from './services/admin.service';
 import { AdminController } from './controllers/admin.controller';
+import { AuthModule } from '../auth/auth.module';
+import { DoctorStatistical } from './repositories/doctor.repository';
 
 ;
 
 @Module({
-  providers: [DoctorService, ParentService, DoctorService, AdminService],
+  imports:[AuthModule],
+  providers: [DoctorService, ParentService, DoctorService, AdminService , DoctorStatistical],
   controllers: [ParentController, DoctorController, AdminController]
 })
 export class StatisticalModule {}

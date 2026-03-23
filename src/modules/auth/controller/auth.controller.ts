@@ -10,7 +10,7 @@ import { CookieService } from '../services/cookie.service';
 import { Response } from 'express';
 import { JwtAuthGuard } from '../guard/jwt.guard';
 import { RefreshTokenGuard } from '../guard/refreshToken.guard';
-import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
+import { SkipThrottle, Throttle, ThrottlerGuard } from '@nestjs/throttler';
 
 
 @UseGuards(ThrottlerGuard)
@@ -31,7 +31,7 @@ export class AuthController {
     return this.authService.registerParent(dto);
   }
 
-  @Throttle({default:{limit:5 , ttl : 60_000}})
+  @Throttle({default:{limit:8, ttl : 60_000}})
   @Post('/login')
   async login(@Body() dto: LoginDto, @Res({ passthrough: true }) res: Response) {
     const result = await this.authService.login(dto);
@@ -83,6 +83,7 @@ export class AuthController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @SkipThrottle()
   @Get('me')
   async getMe(@Req() req) {
     return req.user;

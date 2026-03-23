@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma, User } from '@prisma/client';
+import { Prisma, ProfileDoctor, ProfileParent, User } from '@prisma/client';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 
 type RegisterUserInfoResult = Prisma.UserGetPayload<{
@@ -44,10 +44,14 @@ export class AuthRepository {
     });
   }
 
-  async findUserById(userId: string): Promise<User | null> {
+  async findUserById(userId: string): Promise< User | any > {
     return this.prisma.user.findUnique({
       where: {
         id: userId,
+      },
+      include: {
+        profileDoctory: true,
+        profileParent: true,
       },
     });
   }

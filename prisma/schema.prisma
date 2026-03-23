@@ -45,8 +45,9 @@ enum WeekDay {
 }
 
 enum ExceptionType {
-  OFF
-  CUSTOM_HOUR
+  DAY_OFF
+  CUSTOM_UNAVAILABLE_HOURS
+  CUSTOM_AVAILABLE_HOURS
 }
 
 enum Currency {
@@ -80,15 +81,15 @@ enum MedicineUnit {
  */
 
 model User {
-  id           String   @id @default(uuid())
-  email        String   @unique
-  passwordHash String
-  role         Role
-  isActive     Boolean? @default(true)
+  id                 String         @id @default(uuid())
+  email              String         @unique
+  passwordHash       String
+  role               Role
+  isActive           Boolean?       @default(true)
   hashedRefreshToken String?
-  profileParent  ProfileParent?
-  profileDoctory ProfileDoctor?
-  notification   Notification[]
+  profileParent      ProfileParent?
+  profileDoctory     ProfileDoctor?
+  notification       Notification[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -137,6 +138,7 @@ model ProfileDoctor {
 
   exception          Exception[]
   appointment        Appointment[]
+  payment            Payment[]
   availabilityPolicy AvailabilityPolicy?
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
@@ -168,8 +170,8 @@ model Child {
 
 model AvailabilityPolicy {
   id            String        @id @default(uuid())
-  userId        String        @unique
-  profileDoctor ProfileDoctor @relation(fields: [userId], references: [id], onDelete: Cascade)
+  doctorId      String        @unique
+  profileDoctor ProfileDoctor @relation(fields: [doctorId], references: [id], onDelete: Cascade)
   weeklyOffDays WeekDay[]
   startWork     DateTime
   endWork       DateTime
@@ -197,7 +199,7 @@ model Exception {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([startTime, endTime])
+  @@index([doctorId,startTime, endTime])
 }
 
 model Notification {
@@ -228,13 +230,16 @@ model Payment {
   parentId      String
   profileParent ProfileParent @relation(fields: [parentId], references: [id], onDelete: Cascade)
 
+  doctorId      String
+  profileDoctor ProfileDoctor @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+
   currency  Currency
   status    PaymentStatus
   paidAt    DateTime?
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
 
-  @@index([appointmentId, parentId])
+  @@index([doctorId,appointmentId, parentId])
 }
 
 model Appointment {

@@ -9,29 +9,14 @@ import { ProfileParentRepository } from './repositories/profileParent.repository
 import { ProfileDoctorRepository } from './repositories/profileDoctory.repository';
 import { RedisModule } from 'src/redis/redis.module';
 import { CookieService } from './services/cookie.service';
-import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
-import { APP_GUARD } from '@nestjs/core';
-import { RefreshTokenGuard } from './guard/refreshToken.guard';
 import { RefreshTokenStrategy } from './strategies/refreshToken.strategy';
 
 @Module({
-  imports: [
-    ThrottlerModule.forRoot([
-      {
-        ttl: 60_000,
-        limit: 20,
-      },
-      
-    ]),
-    JwtModule.register({}),
-    RedisModule,
-  ],
+  imports: [JwtModule.register({}), RedisModule],
   controllers: [AuthController],
   providers: [
-    {
-      provide:APP_GUARD,
-      useClass:ThrottlerGuard
-    },
+    ProfileDoctorRepository,
+    ProfileParentRepository,
     CookieService,
     AuthService,
     jwtStrategy,
@@ -41,6 +26,6 @@ import { RefreshTokenStrategy } from './strategies/refreshToken.strategy';
     ProfileParentRepository,
     ProfileDoctorRepository,
   ],
-  exports: [AuthService, JwtAuthGuard],
+  exports: [AuthService, JwtAuthGuard, AuthRepository],
 })
 export class AuthModule {}

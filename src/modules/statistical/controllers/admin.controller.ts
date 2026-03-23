@@ -8,3 +8,7 @@ export class AdminController {
 
     
 }
+/*
+total doctor , total parent , total child ,
+doctor profile , speciality , total active user ,
+*/
