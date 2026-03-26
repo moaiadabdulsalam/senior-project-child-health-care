@@ -15,7 +15,7 @@ import {
 import { ExceptionService } from '../services/exception.service';
 import { JwtAuthGuard } from 'src/modules/auth/guard/jwt.guard';
 import { RoleGuard } from 'src/core/guard/role.guard';
-import { ThrottlerGuard } from '@nestjs/throttler';
+import { SkipThrottle, ThrottlerGuard } from '@nestjs/throttler';
 import { ExceptionType, Role } from '@prisma/client';
 import { userInfo } from 'os';
 import { CreateExceptionDto } from '../dtos/createException.dto';
@@ -27,6 +27,7 @@ import { Roles } from 'src/core/decorator/role.decorator';
 @Controller('exception')
 export class ExceptionController {
   constructor(private readonly exceptionService: ExceptionService) {}
+  @SkipThrottle()
   @Get()
   getAllException(
     @Req() req,
@@ -41,6 +42,7 @@ export class ExceptionController {
     return this.exceptionService.getAllException(userId, page, limit, type, from, to, search);
   }
 
+  @SkipThrottle()
   @Get('/:id')
   getOne(@Req() req, @Param('id') id: string) {
     const { userId } = req.user;

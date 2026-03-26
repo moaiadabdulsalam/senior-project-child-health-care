@@ -11,11 +11,10 @@ type AppointmentWithRelation = Prisma.AppointmentGetPayload<{
 type AppointmentWithRelationChild = Prisma.AppointmentGetPayload<{
   include: {
     child: true;
-  
   };
 }>;
 @Injectable()
-export class DoctorStatistical {
+export class DoctorStatisticalRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async revenue(from: Date, to: Date, doctorId: string) {
@@ -31,7 +30,7 @@ export class DoctorStatistical {
     });
   }
 
-  async todayAppointments(doctorId: string) :Promise<Appointment[]>{
+  async todayAppointments(doctorId: string): Promise<Appointment[]> {
     return await this.prisma.appointment.findMany({
       where: {
         doctorId,
@@ -39,7 +38,7 @@ export class DoctorStatistical {
     });
   }
 
-  async countChildForSpecficDoctor(doctorId: string) :Promise <AppointmentWithRelationChild[]> {
+  async countChildForSpecficDoctor(doctorId: string): Promise<AppointmentWithRelationChild[]> {
     return await this.prisma.appointment.findMany({
       where: {
         doctorId,
@@ -51,7 +50,10 @@ export class DoctorStatistical {
     });
   }
 
-  async allAppointmentsLastMonth(doctorId: string, lastMonth: Date) : Promise<AppointmentWithRelation[]> {
+  async allAppointmentsLastMonth(
+    doctorId: string,
+    lastMonth: Date,
+  ): Promise<AppointmentWithRelation[]> {
     return await this.prisma.appointment.findMany({
       where: {
         doctorId,
@@ -67,7 +69,7 @@ export class DoctorStatistical {
     });
   }
 
-  async totalParent(doctorId: string):Promise<number> {
+  async totalParent(doctorId: string): Promise<number> {
     const total = await this.prisma.appointment.findMany({
       where: {
         doctorId,
@@ -79,7 +81,7 @@ export class DoctorStatistical {
     return total.length;
   }
 
-  async totalPatient(doctorId: string):Promise<number> {
+  async totalPatient(doctorId: string): Promise<number> {
     const total = await this.prisma.appointment.findMany({
       where: {
         doctorId,
@@ -87,6 +89,6 @@ export class DoctorStatistical {
       },
       distinct: ['childId'],
     });
-    return total.length
+    return total.length;
   }
 }

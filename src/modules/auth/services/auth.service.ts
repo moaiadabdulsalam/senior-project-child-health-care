@@ -19,6 +19,7 @@ import * as nodemailer from 'nodemailer';
 import { RedisService } from 'src/redis/redis.service';
 import { VerifyOtpDto } from '../dtos/verifyOtp.dto';
 import { ResetPasswordDto } from '../dtos/resetPassword.dto';
+import { DoctorStatus } from '@prisma/client';
 @Injectable()
 export class AuthService {
   constructor(
@@ -36,6 +37,9 @@ export class AuthService {
       throw new BadRequestException('Invalid user data for token generation');
     }
     const secret = this.config.get('JWT_SECRET');
+    if (!secret) {
+      throw new BadRequestException('Missing JWT_REFRESH_SECRET');
+    }
     const payload = {
       userId: user.id,
       role: user.role,
@@ -64,12 +68,12 @@ export class AuthService {
       email: user.email,
     };
 
-    const refreshToken =  await this.jwt.signAsync(payload, {
+    const refreshToken = await this.jwt.signAsync(payload, {
       secret,
       expiresIn: '7d',
     });
 
-    return refreshToken
+    return refreshToken;
   }
   private getTransporter() {
     return nodemailer.createTransport({
@@ -83,7 +87,7 @@ export class AuthService {
     });
   }
 
-  async sendOtpToEmail(email: string, otp: string) {
+  async sendToEmail(email: string, html: string, subject: string) {
     try {
       const transporter = this.getTransporter();
       const fromEmail = this.config.get<string>('SMTP_EMAIL');
@@ -91,10 +95,10 @@ export class AuthService {
         throw new Error('Internal Server Error: Email configuration is missing.');
       }
       await transporter.sendMail({
-        from: `"APP Name" <${fromEmail}>`,
+        from: `"Dada" <${fromEmail}>`,
         to: email,
-        subject: 'Password reset',
-        html: `<p>Your Code is: <h2>${otp}</h2></p>`,
+        subject,
+        html,
       });
     } catch (error) {
       console.error('Email sending error:', error);
@@ -131,7 +135,9 @@ export class AuthService {
       const parent = await this.profileParentRepo.registerParentInfo(
         {
           fullName: dto.fullName,
+          fullNameArabic:dto.fullNameArabic??undefined,
           address: dto.address,
+          addressArabic:dto.addressArabic??undefined,
           phone: dto.phone,
           user: {
             connect: { id: user.id },
@@ -139,8 +145,8 @@ export class AuthService {
         },
         tx,
       );
-      const accessToken = await this.signAccessToken(user);
-      return { accessToken, user, parent };
+
+      return { user, parent };
     });
   }
 
@@ -158,17 +164,22 @@ export class AuthService {
           email: dto.email,
           passwordHash: hash,
           role: dto.role,
+          isActive: false,
         },
         tx,
       );
       const doctor = await this.profileDoctoryRepo.registerDoctorInfo(
         {
           speciality: dto.speciality,
+          specialityArabic:dto.specialityArabic??undefined,
           clinicAddress: dto.clinicAddress,
+          clinicNameArabic:dto.clinicAddressArabic??undefined,
           clinicPhone: dto.clinicPhone ?? '', //بعدل تعديلها في الداتا بيز
           clinicName: dto.clinicName,
+          clinicAddressArabic:dto.clinicNameArabic??undefined,
           fullName: dto.fullName,
-          status: dto.status,
+          fullNameArabic:dto.fullNameArabic??undefined,
+          status: DoctorStatus.VERIFYING,
           description: dto.description,
           phone: dto.phone,
           user: {
@@ -177,9 +188,8 @@ export class AuthService {
         },
         tx,
       );
-      const accessToken = await this.signAccessToken(user);
 
-      return { accessToken, user, doctor };
+      return { user, doctor };
     });
   }
 
@@ -213,8 +223,9 @@ export class AuthService {
     const hashedOtp = await bcrypt.hash(otp, 10);
 
     await this.redis.set(`otp:${dto.email}`, hashedOtp, 300);
-
-    await this.sendOtpToEmail(dto.email, otp);
+    const html = `<p>Your Code is: <h2>${otp}</h2></p>`;
+    const subject = 'Password reset';
+    await this.sendToEmail(dto.email, html, subject);
 
     return {
       message: ' Otp Send ',
@@ -277,7 +288,7 @@ export class AuthService {
 
     const accessToken = await this.signAccessToken(user);
     const newRefreshToken = await this.signRefreshToken(user);
-    
+
     const hashRefresh = await bcrypt.hash(newRefreshToken, 10);
 
     await this.userRepo.updateUserRefreshToken(user.id, hashRefresh);
@@ -294,7 +305,9 @@ export class AuthService {
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const hashedOtp = await bcrypt.hash(otp, 10);
     await this.redis.set(`otp:${dto.email}`, hashedOtp, 300);
-    await this.sendOtpToEmail(dto.email, otp);
+    const subject = 'Password reset';
+    const html = `<p>Your Code is: <h2>${otp}</h2></p>`;
+    await this.sendToEmail(dto.email, html, subject);
     return {
       message: 'Otp Resend',
     };

@@ -7,7 +7,7 @@ export class RegisterDoctorDto {
   email: string;
 
   @IsString()
-  @MinLength(6)
+  @MinLength(8)
   @IsNotEmpty()
   password: string;
 
@@ -21,11 +21,19 @@ export class RegisterDoctorDto {
   fullName: string;
 
   @IsString()
+  @IsOptional()
+  fullNameArabic?:string
+
+  @IsString()
   phone: string;
 
   @IsString()
   @IsNotEmpty()
   speciality: string;
+
+  @IsString()
+  @IsOptional()
+  specialityArabic?:string
 
   @IsString()
   @IsOptional()
@@ -37,13 +45,19 @@ export class RegisterDoctorDto {
 
   @IsString()
   @IsOptional()
+  clinicAddressArabic?:string
+
+  @IsString()
+  @IsOptional()
   clinicPhone?: string;
 
   @IsString()
   @IsOptional()
   clinicName?: string;
-
+  
   @IsString()
-  @IsEnum(DoctorStatus)
-  status: DoctorStatus;
+  @IsOptional()
+  clinicNameArabic?:string
+
+  
 }

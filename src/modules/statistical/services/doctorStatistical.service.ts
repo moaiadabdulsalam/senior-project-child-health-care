@@ -1,20 +1,18 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { AuthRepository } from 'src/modules/auth/repositories/auth.repository';
-import { DoctorStatistical } from '../repositories/doctor.repository';
-import { DoctorStatus, Gender } from '@prisma/client';
+import { DoctorStatisticalRepository } from '../repositories/doctor.repository';
+import { DoctorStatus } from '@prisma/client';
 
 @Injectable()
-export class DoctorService {
+export class DoctorStatisticalService {
   constructor(
     private readonly userRepo: AuthRepository,
-    private readonly doctorRepo: DoctorStatistical,
+    private readonly doctorRepo: DoctorStatisticalRepository,
   ) {}
-
-
   private async checkUserAndProfileDoctor(userId: string) {
     const user = await this.userRepo.findUserById(userId);
     if (!user) {
-      throw new NotFoundException("user not found");
+      throw new NotFoundException('user not found');
     }
     const doctorProfile = user.profileDoctory;
     if (!doctorProfile || doctorProfile.status !== DoctorStatus.CONFIRMING) {
@@ -40,56 +38,31 @@ export class DoctorService {
   }
 
   async revenue(userId: string, from?: string, to?: string) {
-    const doctorId = await this.checkUserAndProfileDoctor(userId)
+    const doctorId = await this.checkUserAndProfileDoctor(userId);
     const begin = from ? this.parseDate(from, 'from') : this.lastMonthAgo();
     const end = to ? this.parseDate(to, 'to') : new Date();
     return this.doctorRepo.revenue(begin, end, doctorId);
   }
 
   async todayAppointments(userId: string) {
-    const doctorId = await this.checkUserAndProfileDoctor(userId)
+    const doctorId = await this.checkUserAndProfileDoctor(userId);
     return this.doctorRepo.todayAppointments(doctorId);
   }
 
-  async genderDistribution(userId: string) {
-    const doctorId = await this.checkUserAndProfileDoctor(userId)
-    const childForDoctor = this.doctorRepo.countChildForSpecficDoctor(doctorId);
-
-    let male: number = 0;
-    let female: number = 0;
-    const genderCount = (await childForDoctor).map((a) => {
-      if (a.child.gender === Gender.Male) {
-        male++;
-      } else {
-        female++;
-      }
-      return {
-        male: male,
-        female: female,
-      };
-    });
-    return { genderCount };
-  }
-
   async bookingLastMonth(userId: string) {
-    const doctorId = await this.checkUserAndProfileDoctor(userId)
+    const doctorId = await this.checkUserAndProfileDoctor(userId);
     const lastMonth = this.lastMonthAgo();
     const booking = await this.doctorRepo.allAppointmentsLastMonth(doctorId, lastMonth);
     return booking;
   }
 
-  async totalParent(userId : string){
-    const doctorId = await this.checkUserAndProfileDoctor(userId)
-    return await this.doctorRepo.totalParent(doctorId)
-
+  async totalParent(userId: string) {
+    const doctorId = await this.checkUserAndProfileDoctor(userId);
+    return await this.doctorRepo.totalParent(doctorId);
   }
 
-  async totalPatient(userId : string){
-    const doctorId = await this.checkUserAndProfileDoctor(userId)
-    return await this.doctorRepo.totalPatient(doctorId)
+  async totalPatient(userId: string) {
+    const doctorId = await this.checkUserAndProfileDoctor(userId);
+    return await this.doctorRepo.totalPatient(doctorId);
   }
-
-
-  
 }
-

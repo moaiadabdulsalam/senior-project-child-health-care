@@ -1,16 +1,19 @@
 import { Controller, Get, Query, Req, UseGuards } from '@nestjs/common';
-import { DoctorService } from '../services/doctor.service';
+import { DoctorStatisticalService } from '../services/doctorStatistical.service';
 import { JwtAuthGuard } from 'src/modules/auth/guard/jwt.guard';
 import { RoleGuard } from 'src/core/guard/role.guard';
 import { Roles } from 'src/core/decorator/role.decorator';
 import { Role } from '@prisma/client';
-import { request } from 'express';
+import { AdminService } from '../services/admin.service';
 
 @UseGuards(JwtAuthGuard, RoleGuard)
 @Roles(Role.DOCTOR)
 @Controller('statistical')
 export class DoctorController {
-  constructor(private readonly doctorService: DoctorService) {}
+  constructor(
+    private readonly doctorService: DoctorStatisticalService,
+    private readonly adminService: AdminService,
+  ) {}
   @Get('revenue')
   revenue(@Req() req, @Query('from') from?: string, @Query('to') to?: string) {
     const { userId } = req.user;
@@ -24,12 +27,6 @@ export class DoctorController {
 
   @Get('/averagePatientAge')
   averagePatientAge() {}
-
-  @Get('/genderDistribution')
-  genderDistribution(@Req() req) {
-    const { userId } = req.user;
-    return this.doctorService.genderDistribution(userId);
-  }
 
   @Get('/bookingLastMonth')
   bookingLastMonth(@Req() req) {
@@ -47,6 +44,10 @@ export class DoctorController {
   getTotalParent(@Req() req) {
     const { userId } = req.user;
     return this.doctorService.totalParent(userId);
+  }
+  @Get('/genderDistribution')
+  genderDistribution() {
+    return this.adminService.genderDistribution();
   }
 }
 

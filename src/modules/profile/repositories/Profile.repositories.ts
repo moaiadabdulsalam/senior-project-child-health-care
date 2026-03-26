@@ -24,7 +24,7 @@ export class ProfileRepository{
 
     async changePassword(userId :string, newPassword : string){
         return await this.prisma.user.update({
-            where:{id:userId},
+            where:{id:userId , isActive :true},
             data:{
                 passwordHash:newPassword
             }

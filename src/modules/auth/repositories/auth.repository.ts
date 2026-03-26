@@ -37,17 +37,24 @@ export class AuthRepository {
   }
 
   async findUserByEmail(email: string): Promise<User | null> {
-    return this.prisma.user.findUnique({
+    return this.prisma.user.findFirst({
       where: {
         email,
+        isActive:true
       },
+      include:{
+        profileDoctory:true,
+        profileParent:true
+      }
+      
     });
   }
 
   async findUserById(userId: string): Promise< User | any > {
-    return this.prisma.user.findUnique({
+    return this.prisma.user.findFirst({
       where: {
         id: userId,
+        isActive:true
       },
       include: {
         profileDoctory: true,
@@ -57,14 +64,14 @@ export class AuthRepository {
   }
   async updateUserPassword(id: string, data: string) {
     await this.prisma.user.update({
-      where: { id },
+      where: { id ,isActive:true },
       data,
     });
   }
 
   async updateUserRefreshToken(id: string, newRefreshToken: string | null) {
     await this.prisma.user.update({
-      where: { id },
+      where: { id  , isActive : true},
       data: {
         hashedRefreshToken: newRefreshToken,
       },

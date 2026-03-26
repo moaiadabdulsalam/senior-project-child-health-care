@@ -12,6 +12,7 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { ExceptionModule } from './modules/exception/exception.module';
 import { ProfileModule } from './modules/profile/profile.module';
+import { UsersModule } from './modules/users/users.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { ProfileModule } from './modules/profile/profile.module';
     AvailabilityPolicyModule,
     ExceptionModule,
     ProfileModule,
+    UsersModule,
   ],
   providers: [
     {

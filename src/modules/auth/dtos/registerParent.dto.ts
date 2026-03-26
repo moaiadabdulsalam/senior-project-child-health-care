@@ -28,8 +28,16 @@ export class RegisterParentDto {
   fullName: string;
 
   @IsString()
+  @IsOptional()
+  fullNameArabic?:string
+  
+  @IsString()
   phone: string;
 
   @IsOptional()
   address?: string;
+
+  @IsString()
+  @IsOptional()
+  addressArabic?:string
 }

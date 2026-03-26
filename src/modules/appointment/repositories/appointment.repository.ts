@@ -7,7 +7,7 @@ export class AppointmentRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async getAppointment(where: Prisma.AppointmentWhereInput) {
-    return await this.prisma.appointment.findFirst({
+    return await this.prisma.appointment.findMany({
       where,
     });
   }

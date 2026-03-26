@@ -31,7 +31,7 @@ export class AuthController {
     return this.authService.registerParent(dto);
   }
 
-  @Throttle({default:{limit:8, ttl : 60_000}})
+  @Throttle({default:{limit:5, ttl : 60_000}})
   @Post('/login')
   async login(@Body() dto: LoginDto, @Res({ passthrough: true }) res: Response) {
     const result = await this.authService.login(dto);
@@ -45,7 +45,7 @@ export class AuthController {
   }
 
   @Post('/forgot-password')
-  @Throttle({default:{limit:1, ttl : 60_000}})
+  @Throttle({default:{limit:2, ttl : 60_000}})
   forgetPassword(@Body() email: SendEmailDto) {
     return this.authService.sendOtp(email);
   }

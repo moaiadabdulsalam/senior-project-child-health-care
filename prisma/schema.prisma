@@ -24,7 +24,7 @@ enum Role {
 }
 
 enum DoctorStatus {
-  PENDING
+  REJECTED
   VERIFYING
   CONFIRMING
 }
@@ -65,6 +65,7 @@ enum PaymentStatus {
 enum AppointmentStatus {
   NO_SHOW
   CANCELLED
+  RESERVED
   COMPLETED
   CONFIRMED
 }
@@ -74,6 +75,19 @@ enum MedicineUnit {
   tablet
   dose
   drop
+}
+
+enum GameSessionStatus {
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+  ABANDONED
+}
+
+enum MedicationStatus {
+    COMPLETED
+    CANCELLED
+    ACTIVE
 }
 
 /**
@@ -158,11 +172,14 @@ model Child {
   bloodType      String?
   loginHandle    String
   photo          String?
+  isActive       Boolean? @default(true)
+  role           Role
 
-  appointment Appointment[]
-  medication  Medication[]
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  gameSessions GameSession[]
+  appointment  Appointment[]
+  medication   Medication[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
 
   @@unique([fullName, parentId])
   @@index([fullName, parentId])
@@ -199,7 +216,7 @@ model Exception {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([doctorId,startTime, endTime])
+  @@index([doctorId, startTime, endTime])
 }
 
 model Notification {
@@ -239,7 +256,7 @@ model Payment {
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
 
-  @@index([doctorId,appointmentId, parentId])
+  @@index([doctorId, appointmentId, parentId])
 }
 
 model Appointment {
@@ -280,6 +297,7 @@ model Medication {
   firstDoseTime      DateTime
   firstDoseDate      DateTime
   rememberTime       String
+  status             MedicationStatus
   createdAt          DateTime     @default(now())
   updatedAt          DateTime     @updatedAt
 
@@ -295,4 +313,40 @@ model PasswordChange {
   createdAt DateTime @default(now())
 
   @@index([email])
+}
+
+model Game {
+  id              String   @id @default(uuid())
+  title           String
+  description     String?
+  category        String
+  minAge          Int?
+  maxAge          Int?
+  difficultyLevel Int?
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  gameSessions GameSession[]
+  @@index([title , category])
+  @@unique([title])
+}
+
+model GameSession {
+  id              String            @id @default(uuid())
+  childId         String
+  child           Child             @relation(fields: [childId], references: [id], onDelete: Cascade)
+  gameId          String
+  game            Game              @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  startedAt       DateTime          @default(now())
+  endedAt         DateTime
+  durationSeconds Int?
+  score           Int?
+  levelReached    Int?
+  status          GameSessionStatus @default(IN_PROGRESS)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+
+  @@index([childId, gameId])
 }
