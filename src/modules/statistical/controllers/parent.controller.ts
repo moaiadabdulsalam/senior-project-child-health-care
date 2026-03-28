@@ -12,7 +12,7 @@ export class ParentController {
   }
 
   @Get('/totalGames')
-  totalGames(@Req() req, @Query('date', ParseDatePipe) date?: Date) {
+  totalGames(@Req() req, @Query('date', new ParseDatePipe()) date?: Date) {
     const { userId } = req.user;
     return this.parentService.totalGames(userId, date);
   }
@@ -24,9 +24,9 @@ export class ParentController {
   }
 
   @Get('/medication')
-  getMedication(@Req() req){
-    const {userId} = req.user
-    return this.parentService.getMedication(userId)
+  getMedication(@Req() req) {
+    const { userId } = req.user;
+    return this.parentService.getMedication(userId);
   }
 }
 

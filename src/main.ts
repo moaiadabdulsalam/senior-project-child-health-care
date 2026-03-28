@@ -8,6 +8,10 @@ import cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  const frontendOrigins = (process.env.FRONTEND_ORIGINS ?? 'http://localhost:3000')
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean);
 
   app.use(
     helmet({
@@ -26,7 +30,7 @@ async function bootstrap() {
   );
 
   app.enableCors({
-    origin: [],
+    origin: frontendOrigins,
     methods: ['GET', 'POST', 'PATCH', 'DELETE'],
     credentials: true,
     allowedHeaders: 'Authorization,Content-Type,lang',
