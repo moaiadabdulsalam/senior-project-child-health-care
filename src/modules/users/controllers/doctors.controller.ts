@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
-import { ThrottlerGuard } from '@nestjs/throttler';
+import { SkipThrottle, ThrottlerGuard } from '@nestjs/throttler';
 import { Role } from '@prisma/client';
 import { Roles } from 'src/core/decorator/role.decorator';
 import { RoleGuard } from 'src/core/guard/role.guard';
@@ -15,11 +15,13 @@ import { AnswerRequestDto } from '../dto/answerRequest.dto';
 export class DoctorsController {
   constructor(private readonly doctorsService: DoctorsService) {}
 
+  @SkipThrottle()
   @Get()
   getAllDoctors() {
     return this.doctorsService.getAllDoctors();
   }
 
+  @SkipThrottle()
   @Get('/:id')
   getOne(@Param('id') id: string) {
     return this.doctorsService.getOne(id);
@@ -27,7 +29,7 @@ export class DoctorsController {
 
   @Get('/requestDoctor')
   requestDoctor(){
-    return  this.doctorsService.getRequestDoctor()
+    return this.doctorsService.getRequestDoctor()
   }
 
   @Patch('/requestDoctor/:id')

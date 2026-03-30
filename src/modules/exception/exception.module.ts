@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, ParseIntPipe } from '@nestjs/common';
 import { ExceptionController } from './controllers/exception.controller';
 import { ExceptionService } from './services/exception.service';
 import { AuthModule } from '../auth/auth.module';

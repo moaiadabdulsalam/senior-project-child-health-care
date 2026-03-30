@@ -67,7 +67,7 @@ enum AppointmentStatus {
   CANCELLED
   RESERVED
   COMPLETED
-  CONFIRMED
+  PENDING
 }
 
 enum MedicineUnit {

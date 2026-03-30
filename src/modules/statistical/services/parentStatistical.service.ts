@@ -2,7 +2,7 @@ import { BadGatewayException, Injectable, NotFoundException } from '@nestjs/comm
 import { ParentStatisticalRepository } from '../repositories/parent.repository';
 import { AuthRepository } from 'src/modules/auth/repositories/auth.repository';
 import { AppointmentRepository } from 'src/modules/appointment/repositories/appointment.repository';
-import { AppointmentStatus, Prisma } from '@prisma/client';
+import { AppointmentStatus, Prisma, Role } from '@prisma/client';
 
 @Injectable()
 export class ParentStatisticalService {
@@ -17,9 +17,10 @@ export class ParentStatisticalService {
       throw new NotFoundException('user not found');
     }
     const parentProfile = user.profileParent;
-    if (!parentProfile) {
-      throw new NotFoundException('doctor profile not found');
+    if (!parentProfile || user.role !== Role.PARENT) {
+      throw new NotFoundException('parent profile not found');
     }
+
 
     return parentProfile.id;
   }

@@ -12,5 +12,6 @@ import { AuthModule } from '../auth/auth.module';
   imports: [AuthModule],
   providers: [DoctorsService, ParentsService, DoctorsRepository, ParentsRepository],
   controllers: [DoctorsController, ParentController],
+  exports : [DoctorsRepository]
 })
 export class UsersModule {}

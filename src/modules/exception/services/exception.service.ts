@@ -95,7 +95,7 @@ export class ExceptionService {
         : {}),
     };
 
-    const data = await this.exceptionRepo.getAllExceptions(where);
+    const data = await this.exceptionRepo.getAllExceptions(where, skip, limit);
     const count = await this.exceptionRepo.countException(where);
 
     return {

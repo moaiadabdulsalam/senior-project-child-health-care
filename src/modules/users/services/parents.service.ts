@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { ParentsRepository } from '../repositories/parents.repository';
 import { UpdateActivityDto } from '../dto/updateActivity.dto';
 import { AuthRepository } from 'src/modules/auth/repositories/auth.repository';
+import { Role } from '@prisma/client';
 
 @Injectable()
 export class ParentsService {
@@ -16,8 +17,8 @@ export class ParentsService {
       throw new NotFoundException('user not found');
     }
     const parentProfile = user.profileParent;
-    if (!parentProfile) {
-      throw new NotFoundException('doctor profile not found');
+    if (!parentProfile || user.role !== Role.PARENT) {
+      throw new NotFoundException('parent profile not found');
     }
 
     return parentProfile.id;

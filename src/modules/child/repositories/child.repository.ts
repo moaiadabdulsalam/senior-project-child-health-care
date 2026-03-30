@@ -6,6 +6,16 @@ import { PrismaService } from 'src/database/prisma/prisma.service';
 export class ChildRepository {
   constructor(private readonly prisma: PrismaService) {}
 
+  async getAll(where: Prisma.ChildWhereInput, skip: number, limit: number): Promise<Child[]> {
+    return await this.prisma.child.findMany({
+      where,
+      skip,
+      take: limit,
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+  }
   async createChild(data: Prisma.ChildCreateInput): Promise<Child> {
     return this.prisma.child.create({
       data,
@@ -38,5 +48,11 @@ export class ChildRepository {
       select: { id: true },
     });
     return !!child;
+  }
+
+  async count(where: Prisma.ChildWhereInput) {
+    return await this.prisma.child.count({
+      where,
+    });
   }
 }

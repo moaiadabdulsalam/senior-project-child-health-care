@@ -9,7 +9,6 @@ export class DoctorsRepository {
   async getAllDoctors() {
     return this.prisma.user.findMany({
       where: {
-        isActive: true,
         role: Role.DOCTOR,
       },
       select,
@@ -18,7 +17,7 @@ export class DoctorsRepository {
 
   async getOne(id: string) {
     return this.prisma.user.findFirst({
-      where: { id, isActive: true },
+      where: { id, },
       select,
     });
   }

@@ -5,7 +5,7 @@ import { RoleGuard } from 'src/core/guard/role.guard';
 import { Roles } from 'src/core/decorator/role.decorator';
 import { Role } from '@prisma/client';
 import { UpdateActivityDto } from '../dto/updateActivity.dto';
-import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
+import { SkipThrottle, Throttle, ThrottlerGuard } from '@nestjs/throttler';
 
 @UseGuards(JwtAuthGuard, RoleGuard, ThrottlerGuard)
 @Roles(Role.ADMIN)
@@ -13,12 +13,14 @@ import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
 export class ParentController {
   constructor(private readonly parentsService: ParentsService) {}
 
+  @SkipThrottle()
   @Get()
   getAllUserParent() {
     return this.parentsService.getAllUserParent();
   }
 
-  @Get('/:id')///userId always
+  @SkipThrottle()
+  @Get('/:id') ///userId always
   getChildsForSpecficParent(@Param('id') id: string) {
     return this.parentsService.getChildsForSpecficParent(id);
   }

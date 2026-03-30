@@ -6,9 +6,15 @@ import { PrismaService } from 'src/database/prisma/prisma.service';
 export class ExceptionRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async getAllExceptions(where: Prisma.ExceptionWhereInput): Promise<Exception[]> {
+  async getAllExceptions(
+    where: Prisma.ExceptionWhereInput,
+    skip: number,
+    limit: number,
+  ): Promise<Exception[]> {
     return await this.prisma.exception.findMany({
       where,
+      skip,
+      take: limit,
     });
   }
 

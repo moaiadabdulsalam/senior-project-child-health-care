@@ -13,6 +13,8 @@ import { APP_GUARD } from '@nestjs/core';
 import { ExceptionModule } from './modules/exception/exception.module';
 import { ProfileModule } from './modules/profile/profile.module';
 import { UsersModule } from './modules/users/users.module';
+import { DoctorsParentModule } from './modules/doctors-parent/doctors-parent.module';
+import { MedicationModule } from './modules/medication/medication.module';
 
 @Module({
   imports: [
@@ -36,6 +38,8 @@ import { UsersModule } from './modules/users/users.module';
     ExceptionModule,
     ProfileModule,
     UsersModule,
+    DoctorsParentModule,
+    MedicationModule,
   ],
   providers: [
     {
