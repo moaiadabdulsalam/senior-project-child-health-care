@@ -13,10 +13,7 @@ export class ParentController {
   }
 
   @Get('/totalGames')
-  totalGames(
-    @Req() req,
-    @Query('date', new DefaultValuePipe(new Date()), ParseDatePipe) date: Date,
-  ) {
+  totalGames(@Req() req, @Query('date', new DefaultValuePipe(new Date()),ParseDatePipe) date?: Date) {
     const { userId } = req.user;
     return this.parentService.totalGames(userId, date);
   }

@@ -11,7 +11,7 @@ if (!connectionString) {
 
 const pool = new Pool({ connectionString });
 
-const adapter = new PrismaPg(pool);
+const adapter = new PrismaPg(pool as any);
 
 const prisma = new PrismaClient({ adapter });
 
@@ -27,12 +27,12 @@ async function main() {
   const parent = await prisma.user.upsert({
     where: { email: emailParent },
     update: {
-      email:emailParent,
+      email: emailParent,
       passwordHash,
       role: Role.PARENT,
     },
     create: {
-      email:emailParent,
+      email: emailParent,
       passwordHash,
       role: Role.PARENT,
     },
@@ -40,13 +40,13 @@ async function main() {
   const doctor = await prisma.user.upsert({
     where: { email: emailDoctor },
     update: {
-      email:emailDoctor,
-      passwordHash:passwordHashDoctory,
+      email: emailDoctor,
+      passwordHash: passwordHashDoctory,
       role: Role.DOCTOR,
     },
     create: {
-      email:emailDoctor,
-      passwordHash:passwordHashDoctory,
+      email: emailDoctor,
+      passwordHash: passwordHashDoctory,
       role: Role.DOCTOR,
     },
   });
