@@ -8,5 +8,6 @@ import { AuthModule } from '../auth/auth.module';
   imports: [AuthModule],
   providers: [ChildService, ChildRepository , ParseIntPipe],
   controllers: [ChildController],
+  exports:[ChildService]
 })
 export class ChildModule {}

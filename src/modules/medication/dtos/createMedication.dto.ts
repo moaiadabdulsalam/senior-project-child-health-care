@@ -4,7 +4,11 @@ import { IsDateString, IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-va
 export class CreateMedicationDto {
 
   @IsString()
-  @IsNotEmpty()  
+  @IsNotEmpty()
+  childId: string
+
+  @IsString()
+  @IsNotEmpty()
   medicineName: string;
 
   @IsString()
@@ -19,22 +23,21 @@ export class CreateMedicationDto {
   medicineAmount: string;
 
   @IsDateString()
-  Duration: string;
+  Duration: string;/// في  الايام
 
   @IsString()
   @IsNotEmpty()
   amountPerDay: string;
 
   @IsDateString()
-  firstDoseTime: string;
+  firstDoseTime: string; // وقت البدء بالساعات
 
   @IsDateString()
-  firstDoseDate: string;
+  firstDoseDate: string;//وقت البدء بالتاريخ
 
   @IsString()
   @IsNotEmpty()
-  rememberTime: string;
-  
+  rememberTime: string;/// في الدقائق
 
   @IsEnum(MedicationStatus)
   status: MedicationStatus;

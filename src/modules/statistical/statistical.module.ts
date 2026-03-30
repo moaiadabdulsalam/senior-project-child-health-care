@@ -21,7 +21,6 @@ import { AppointmentModule } from '../appointment/appointment.module';
     DoctorStatisticalRepository,
     AdminStatisticalRepository,
     ParentStatisticalRepository,
-    
   ],
   controllers: [ParentController, DoctorController, AdminController],
 })
