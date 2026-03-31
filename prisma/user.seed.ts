@@ -1,59 +1,110 @@
 import { PrismaPg } from '@prisma/adapter-pg';
-import { DoctorStatus, PrismaClient, Role } from '@prisma/client';
+import {
+  AppointmentStatus,
+  Currency,
+  DoctorStatus,
+  ExceptionType,
+  GameSessionStatus,
+  Gender,
+  MedicineUnit,
+  MedicationStatus,
+  PaymentStatus,
+  PrismaClient,
+  Role,
+  WeekDay,
+} from '@prisma/client';
 import { Pool } from 'pg';
 import 'dotenv/config';
 import * as bcrypt from 'bcrypt';
 
 const connectionString = process.env.DATABASE_URL;
+
 if (!connectionString) {
   throw new Error('DATABASE_URL is not set in environment variables');
 }
 
 const pool = new Pool({ connectionString });
-
 const adapter = new PrismaPg(pool as any);
-
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
-  const emailParent = 'dada@gmail.com';
-  const password = '12345678';
-  const passwordHash = await bcrypt.hash(password, 10);
+  const passwordHash = await bcrypt.hash('12345678', 10);
 
-  const emailDoctor = 'doctor@gmail.com';
-  const passwordDoctor = '12345678';
-  const passwordHashDoctory = await bcrypt.hash(passwordDoctor, 10);
-
-  const parent = await prisma.user.upsert({
-    where: { email: emailParent },
+  /**
+   * 1) USERS
+   */
+  const parentUser = await prisma.user.upsert({
+    where: { email: 'parent@gmail.com' },
     update: {
-      email: emailParent,
       passwordHash,
       role: Role.PARENT,
+      isActive: true,
     },
     create: {
-      email: emailParent,
+      email: 'parent@gmail.com',
       passwordHash,
       role: Role.PARENT,
-    },
-  });
-  const doctor = await prisma.user.upsert({
-    where: { email: emailDoctor },
-    update: {
-      email: emailDoctor,
-      passwordHash: passwordHashDoctory,
-      role: Role.DOCTOR,
-    },
-    create: {
-      email: emailDoctor,
-      passwordHash: passwordHashDoctory,
-      role: Role.DOCTOR,
+      isActive: true,
     },
   });
 
-  // profileDoctor.userId is UNIQUE, so we must upsert to avoid duplicate constraint errors.
-  await prisma.profileDoctor.upsert({
-    where: { userId: doctor.id },
+  const doctorUser = await prisma.user.upsert({
+    where: { email: 'doctor@gmail.com' },
+    update: {
+      passwordHash,
+      role: Role.DOCTOR,
+      isActive: true,
+    },
+    create: {
+      email: 'doctor@gmail.com',
+      passwordHash,
+      role: Role.DOCTOR,
+      isActive: true,
+    },
+  });
+
+  const adminUser = await prisma.user.upsert({
+    where: { email: 'admin@gmail.com' },
+    update: {
+      passwordHash,
+      role: Role.ADMIN,
+      isActive: true,
+    },
+    create: {
+      email: 'admin@gmail.com',
+      passwordHash,
+      role: Role.ADMIN,
+      isActive: true,
+    },
+  });
+
+  /**
+   * 2) PARENT PROFILE
+   */
+  const parentProfile = await prisma.profileParent.upsert({
+    where: { userId: parentUser.id },
+    update: {
+      fullName: 'Ahmad Ali',
+      fullNameArabic: 'أحمد علي',
+      phone: '0900000000',
+      address: 'Istanbul / Pendik',
+      addressArabic: 'اسطنبول / بندك',
+    },
+    create: {
+      userId: parentUser.id,
+      fullName: 'Ahmad Ali',
+      fullNameArabic: 'أحمد علي',
+      phone: '0900000000',
+      address: 'Istanbul / Pendik',
+      addressArabic: 'اسطنبول / بندك',
+    },
+  });
+
+  /**
+   * 3) DOCTOR PROFILE
+   */
+  const doctorProfile = await prisma.profileDoctor.upsert({
+    where: { userId: doctorUser.id },
     update: {
       fullName: 'Dr. John Smith',
       fullNameArabic: 'د. جون سميث',
@@ -69,7 +120,7 @@ async function main() {
       status: DoctorStatus.CONFIRMING,
     },
     create: {
-      userId: doctor.id,
+      userId: doctorUser.id,
       fullName: 'Dr. John Smith',
       fullNameArabic: 'د. جون سميث',
       speciality: 'Pediatrician',
@@ -84,9 +135,212 @@ async function main() {
       status: DoctorStatus.CONFIRMING,
     },
   });
-  console.log('✅ Seed completed successfully!');
-  console.log(`User created/updated: ${parent.email} (${parent.role})`);
-  console.log(`User created/updated: ${doctor.email} (${doctor.role})`);
+
+  /**
+   * 4) CHILDREN
+   */
+  const child1 = await prisma.child.upsert({
+    where: {
+      fullName_parentId: {
+        fullName: 'Omar Ahmad',
+        parentId: parentProfile.id,
+      },
+    },
+    update: {
+      fullNameArabic: 'عمر أحمد',
+      gender: Gender.Male,
+      birthDate: new Date('2020-05-10'),
+      bloodType: 'A+',
+      loginHandle: 'omar2020',
+      role: Role.CHILD,
+      isActive: true,
+    },
+    create: {
+      parentId: parentProfile.id,
+      fullName: 'Omar Ahmad',
+      fullNameArabic: 'عمر أحمد',
+      gender: Gender.Male,
+      birthDate: new Date('2020-05-10'),
+      bloodType: 'A+',
+      loginHandle: 'omar2020',
+      role: Role.CHILD,
+      isActive: true,
+    },
+  });
+
+  const child2 = await prisma.child.upsert({
+    where: {
+      fullName_parentId: {
+        fullName: 'Lina Ahmad',
+        parentId: parentProfile.id,
+      },
+    },
+    update: {
+      fullNameArabic: 'لينا أحمد',
+      gender: Gender.Female,
+      birthDate: new Date('2018-11-15'),
+      bloodType: 'B+',
+      loginHandle: 'lina2018',
+      role: Role.CHILD,
+      isActive: true,
+    },
+    create: {
+      parentId: parentProfile.id,
+      fullName: 'Lina Ahmad',
+      fullNameArabic: 'لينا أحمد',
+      gender: Gender.Female,
+      birthDate: new Date('2018-11-15'),
+      bloodType: 'B+',
+      loginHandle: 'lina2018',
+      role: Role.CHILD,
+      isActive: true,
+    },
+  });
+
+  /**
+   * 5) AVAILABILITY POLICY
+   */
+  const availabilityPolicy = await prisma.availabilityPolicy.upsert({
+    where: { doctorId: doctorProfile.id },
+    update: {
+      weeklyOffDays: [WeekDay.FRIDAY],
+      startWork: new Date('2026-01-01T09:00:00.000Z'),
+      endWork: new Date('2026-01-01T17:00:00.000Z'),
+      slot: 30,
+      breakStart: new Date('2026-01-01T12:00:00.000Z'),
+      breakEnd: new Date('2026-01-01T13:00:00.000Z'),
+      sessionPrice: '25.00',
+    },
+    create: {
+      doctorId: doctorProfile.id,
+      weeklyOffDays: [WeekDay.FRIDAY],
+      startWork: new Date('2026-01-01T09:00:00.000Z'),
+      endWork: new Date('2026-01-01T17:00:00.000Z'),
+      slot: 30,
+      breakStart: new Date('2026-01-01T12:00:00.000Z'),
+      breakEnd: new Date('2026-01-01T13:00:00.000Z'),
+      sessionPrice: '25.00',
+    },
+  });
+
+  /**
+   * 6) EXCEPTIONS
+   */
+  const exception1 = await prisma.exception.create({
+    data: {
+      doctorId: doctorProfile.id,
+      reason: 'Doctor attending conference',
+      type: ExceptionType.DAY_OFF,
+      startTime: new Date('2026-04-10T00:00:00.000Z'),
+      endTime: new Date('2026-04-10T23:59:59.000Z'),
+    },
+  });
+
+  const exception2 = await prisma.exception.create({
+    data: {
+      doctorId: doctorProfile.id,
+      reason: 'Custom reduced hours',
+      type: ExceptionType.CUSTOM_AVAILABLE_HOURS,
+      startTime: new Date('2026-04-12T10:00:00.000Z'),
+      endTime: new Date('2026-04-12T14:00:00.000Z'),
+    },
+  });
+
+  /**
+   * 7) APPOINTMENTS
+   */
+  const appointment1 = await prisma.appointment.create({
+    data: {
+      doctorId: doctorProfile.id,
+      childId: child1.id,
+      parentId: parentProfile.id,
+      status: AppointmentStatus.CONFIRMED,
+      date: new Date('2026-04-15T10:00:00.000Z'),
+      reason: 'Routine child checkup',
+      notes: {
+        weightConcern: false,
+        fever: false,
+        comment: 'First visit',
+      },
+    },
+  });
+
+  const appointment2 = await prisma.appointment.create({
+    data: {
+      doctorId: doctorProfile.id,
+      childId: child2.id,
+      parentId: parentProfile.id,
+      status: AppointmentStatus.PENDING,
+      date: new Date('2026-04-16T11:00:00.000Z'),
+      reason: 'Follow-up consultation',
+      notes: {
+        followUpFor: 'Nutrition',
+      },
+    },
+  });
+
+ 
+  /**
+   * 9) MEDICATIONS
+   */
+  const medication1 = await prisma.medication.create({
+    data: {
+      childId: child1.id,
+      parentId: parentProfile.id,
+      medicineName: 'Paracetamol',
+      mdeicineNameArabic: 'باراسيتامول',
+      medicineUnit: MedicineUnit.ml,
+      medicineAmount: '5',
+      Duration: new Date('2026-04-20T00:00:00.000Z'),
+      amountPerDay: '3',
+      firstDoseTime: new Date('2026-04-15T08:00:00.000Z'),
+      firstDoseDate: new Date('2026-04-15T00:00:00.000Z'),
+      rememberTime: 'Every 8 hours',
+      status: MedicationStatus.ACTIVE,
+    },
+  });
+
+  const medication2 = await prisma.medication.create({
+    data: {
+      childId: child2.id,
+      parentId: parentProfile.id,
+      medicineName: 'Vitamin D',
+      mdeicineNameArabic: 'فيتامين د',
+      medicineUnit: MedicineUnit.drop,
+      medicineAmount: '2',
+      Duration: new Date('2026-05-01T00:00:00.000Z'),
+      amountPerDay: '1',
+      firstDoseTime: new Date('2026-04-16T09:00:00.000Z'),
+      firstDoseDate: new Date('2026-04-16T00:00:00.000Z'),
+      rememberTime: 'Once daily after breakfast',
+      status: MedicationStatus.ACTIVE,
+    },
+  });
+
+  /**
+   * 10) NOTIFICATIONS
+   */
+  const notification1 = await prisma.notification.create({
+    data: {
+      userId: parentUser.id,
+      title: 'Appointment Confirmed',
+      message: 'Your appointment has been confirmed successfully.',
+      isRead: false,
+      sentAt: new Date(),
+      from: 'SYSTEM',
+    },
+  });
+
+  const notification2 = await prisma.notification.create({
+    data: {
+      userId: doctorUser.id,
+      title: 'New Appointment',
+      message: 'You have a new appointment scheduled.',
+      isRead: false,
+      sentAt: new Date(),
+      from: 'SYSTEM',
+    },
+  });
 }
 
 main()

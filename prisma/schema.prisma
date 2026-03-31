@@ -55,19 +55,20 @@ enum Currency {
   SYR
 }
 
-enum PaymentStatus {
+enum AppointmentStatus {
   PENDING
-  PAID
-  FAILED
-  REFUNDED
+  PENDING_PAYMENT
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+  NO_SHOW
 }
 
-enum AppointmentStatus {
-  NO_SHOW
-  CANCELLED
-  RESERVED
-  COMPLETED
+enum PaymentStatus {
   PENDING
+  SUCCESS
+  FAILED
+  EXPIRED
 }
 
 enum MedicineUnit {
@@ -240,18 +241,20 @@ model Notification {
 model Payment {
   id String @id @default(uuid())
 
-  amount        Decimal     @db.Decimal(6, 2)
   appointmentId String      @unique
   appointment   Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
-
   parentId      String
   profileParent ProfileParent @relation(fields: [parentId], references: [id], onDelete: Cascade)
-
   doctorId      String
   profileDoctor ProfileDoctor @relation(fields: [doctorId], references: [id], onDelete: Cascade)
 
+  amount        Decimal     @db.Decimal(6, 2)
   currency  Currency
   status    PaymentStatus
+  stripeSessionId       String?       @unique
+  stripePaymentIntentId String?       @unique
+  stripeCustomerId      String?
+
   paidAt    DateTime?
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt

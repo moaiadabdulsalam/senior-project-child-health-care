@@ -54,4 +54,15 @@ export class AppointmentRepository {
     });
   }
   async cancelAppointment() {}
+  async getAppointmentForPayment(appointmentId : string , parentId :string){
+    return await this.prisma.appointment.findFirst({
+      where:{
+        id: appointmentId ,
+        parentId
+      },
+      include:{
+        payment:true
+      }
+    })
+  }
 }

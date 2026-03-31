@@ -101,7 +101,7 @@ export class ParentStatisticalService {
       ids.map(async (child) => {
         let where: Prisma.AppointmentWhereInput = {
           childId: child.id,
-          status: AppointmentStatus.RESERVED,
+          status: AppointmentStatus.CONFIRMED,
         };
         const appointments = await this.AppointmentRepo.getAppointment(where);
         return {

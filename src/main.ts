@@ -5,14 +5,14 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
-
+import * as express from 'express'
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const frontendOrigins = (process.env.FRONTEND_ORIGINS ?? 'http://localhost:3000')
     .split(',')
     .map((origin) => origin.trim())
     .filter(Boolean);
-
+    app.use('/stripe/webhook', express.raw({ type: 'application/json' }));
   app.use(
     helmet({
       crossOriginResourcePolicy: false,

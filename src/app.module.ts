@@ -15,6 +15,8 @@ import { ProfileModule } from './modules/profile/profile.module';
 import { UsersModule } from './modules/users/users.module';
 import { DoctorsParentModule } from './modules/doctors-parent/doctors-parent.module';
 import { MedicationModule } from './modules/medication/medication.module';
+import { StripeModule } from './modules/strip/strip.module';
+import { NotificationModule } from './modules/notification/notification.module';
 
 @Module({
   imports: [
@@ -40,6 +42,8 @@ import { MedicationModule } from './modules/medication/medication.module';
     UsersModule,
     DoctorsParentModule,
     MedicationModule,
+    StripeModule,
+    NotificationModule,
   ],
   providers: [
     {

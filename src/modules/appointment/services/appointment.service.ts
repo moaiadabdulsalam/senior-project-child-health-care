@@ -246,7 +246,7 @@ export class AppointmentService {
   async deleteAppointment(id: string) {
     const appointment = await this.getOne(id);
     const deletedAppointment = await this.AppointmentRepo.deleteAppointment(id);
-    if (appointment.status === AppointmentStatus.RESERVED) {
+    if (appointment.status === AppointmentStatus.CONFIRMED) {
       ////refund
     }
     return {
