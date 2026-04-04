@@ -10,9 +10,16 @@ import { AuthModule } from '../auth/auth.module';
 import { AppointmentModule } from '../appointment/appointment.module';
 import { AvailabilityPolicyModule } from '../availability-policy/availability-policy.module';
 import { PaymentRepository } from './repositories/payment.repository';
+import { NotificationModule } from '../notification/notification.module';
 
 @Module({
-  imports: [ConfigModule, AuthModule, AppointmentModule, AvailabilityPolicyModule],
+  imports: [
+    ConfigModule,
+    AuthModule,
+    AppointmentModule,
+    AvailabilityPolicyModule,
+    NotificationModule,
+  ],
   controllers: [PaymentController, StripeWebhookController],
   providers: [
     PaymentService,

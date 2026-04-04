@@ -19,11 +19,16 @@ import { MedicationStatus, Role } from '@prisma/client';
 import { JwtAuthGuard } from 'src/modules/auth/guard/jwt.guard';
 import { RoleGuard } from 'src/core/guard/role.guard';
 import { SkipThrottle, ThrottlerGuard } from '@nestjs/throttler';
+import { MedicationDoseService } from '../services/medication-dose.service';
+import { UpdateMedicationDoseDto } from '../dtos/updateDose.dto';
 
 @UseGuards(JwtAuthGuard, RoleGuard, ThrottlerGuard)
 @Controller('medication')
 export class MedicationController {
-  constructor(private readonly medicationService: MedicationService) {}
+  constructor(
+    private readonly medicationService: MedicationService,
+    private readonly medicationDoseService: MedicationDoseService,
+  ) {}
 
   @SkipThrottle()
   @Get()
@@ -37,6 +42,16 @@ export class MedicationController {
   ) {
     const { userId } = req.user;
     return this.medicationService.getAllMedication(userId, page, limit, search, status, childId);
+  }
+
+  @Get('/reminder-details/:id')
+  reminderDetails(@Param('id') id: string) {
+    return this.medicationDoseService.getReminderDetails(id);
+  }
+
+  @Patch('/reminder-details/:id')
+  updateSpecficReminderDetails(id: string, @Body() dto: UpdateMedicationDoseDto) {
+    return this.medicationDoseService.updateDose(id, dto);
   }
 
   @Get('/:id')

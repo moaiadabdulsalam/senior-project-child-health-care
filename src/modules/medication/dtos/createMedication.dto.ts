@@ -1,5 +1,5 @@
 import { MedicationStatus, MedicineUnit } from '@prisma/client';
-import { IsDateString, IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsBoolean, IsDateString, IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, Max, Min, MIN } from 'class-validator';
 
 export class CreateMedicationDto {
 
@@ -23,11 +23,11 @@ export class CreateMedicationDto {
   medicineAmount: string;
 
   @IsDateString()
-  Duration: string;/// في  الايام
+  duration: string;/// في  الايام
 
-  @IsString()
   @IsNotEmpty()
-  amountPerDay: string;
+  @IsInt()
+  amountPerDay: number;
 
   @IsDateString()
   firstDoseTime: string; // وقت البدء بالساعات
@@ -35,10 +35,13 @@ export class CreateMedicationDto {
   @IsDateString()
   firstDoseDate: string;//وقت البدء بالتاريخ
 
-  @IsString()
-  @IsNotEmpty()
-  rememberTime: string;/// في الدقائق
+
+  @IsBoolean()
+  @IsOptional()
+  rememberNotify? : boolean = false
+
 
   @IsEnum(MedicationStatus)
   status: MedicationStatus;
+
 }

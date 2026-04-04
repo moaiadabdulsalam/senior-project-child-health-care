@@ -1,9 +1,10 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { AppointmentStatus, PaymentStatus } from '@prisma/client';
+import { AppointmentStatus, NotificationType, PaymentStatus } from '@prisma/client';
 import Stripe from 'stripe';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { StripeService } from './stripe.service';
+import { NotificationService } from 'src/modules/notification/services/notification.service';
 
 @Injectable()
 export class StripeWebhookService {
@@ -11,6 +12,7 @@ export class StripeWebhookService {
     private readonly configService: ConfigService,
     private readonly stripeService: StripeService,
     private readonly prisma: PrismaService,
+    private readonly notification: NotificationService,
   ) {}
 
   async handleWebhook(rawBody: Buffer, signature: string) {
@@ -53,6 +55,7 @@ export class StripeWebhookService {
     await this.prisma.$transaction(async (tx) => {
       const payment = await tx.payment.findUnique({
         where: { id: paymentId },
+        include: { profileDoctor: true, profileParent: true },
       });
 
       if (!payment) return;
@@ -77,6 +80,25 @@ export class StripeWebhookService {
           status: AppointmentStatus.CONFIRMED,
         },
       });
+      await this.notification.create({
+        type: NotificationType.APPOINTMENT_CONFIRMED,
+        title: `New Appointment`,
+        message: ` new Appointment ${payment.parentId}`,
+        userId: payment.profileDoctor.userId,
+        data: {
+          payment,
+          appointmentId,
+        },
+      });
+      await this.notification.create({
+        type: NotificationType.PAYMENT_SUCCESS,
+        title: 'Payment completed successfully',
+        message: 'payemnt completed and appointment booked',
+        userId: payment.profileParent.userId,
+        data: {
+          payment,
+        },
+      });
     });
   }
 
@@ -89,6 +111,9 @@ export class StripeWebhookService {
 
     const payment = await this.prisma.payment.findUnique({
       where: { id: paymentId },
+      include: {
+        profileParent: true,
+      },
     });
 
     if (!payment) {
@@ -103,6 +128,15 @@ export class StripeWebhookService {
       where: { id: paymentId },
       data: {
         status: PaymentStatus.EXPIRED,
+      },
+    });
+    await this.notification.create({
+      type: NotificationType.PAYMENT_FAILED,
+      title: 'Payment Expired ',
+      message: 'payemnt expired please try again',
+      userId: payment.profileParent.userId,
+      data: {
+        payment,
       },
     });
   }

@@ -1,9 +1,7 @@
-import { IsNotEmpty, IsString } from "class-validator";
-
+import { IsNotEmpty, IsString } from 'class-validator';
 
 export class CancelAppointmentDto {
-
-    @IsNotEmpty()
-    @IsString()
-    reason : string
+  @IsNotEmpty()
+  @IsString()
+  reason: string;
 }

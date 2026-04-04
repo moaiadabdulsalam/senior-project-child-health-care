@@ -17,7 +17,7 @@ export class DoctorsRepository {
 
   async getOne(id: string) {
     return this.prisma.user.findFirst({
-      where: { id, },
+      where: { id },
       select,
     });
   }
@@ -41,31 +41,30 @@ export class DoctorsRepository {
   }
 
   async getRequestDoctor() {
-    return await this.prisma.user.findMany({
+    return this.prisma.user.findMany({
       where: {
         profileDoctory: {
           status: DoctorStatus.VERIFYING,
         },
       },
-     select
+      select,
     });
   }
 
-  async answerRequest(id : string , status : DoctorStatus ){
+  async answerRequest(id: string, status: DoctorStatus) {
     return await this.prisma.user.update({
-      where:{
-       id
+      where: {
+        id,
       },
-      data:{
-        profileDoctory:{
-          update:{
-            status
-          }
-
-        }
+      data: {
+        profileDoctory: {
+          update: {
+            status,
+          },
+        },
       },
-      select
-    })
+      select,
+    });
   }
 }
 const select = {

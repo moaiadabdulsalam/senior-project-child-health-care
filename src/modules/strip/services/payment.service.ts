@@ -127,6 +127,7 @@ export class PaymentService {
       appointmentId: appointment.id,
       appointmentStatus: appointment.status,
       payment: appointment.payment,
+      status: appointment.payment?.status ?? 'NO_PAYMENT',
     };
   }
 }

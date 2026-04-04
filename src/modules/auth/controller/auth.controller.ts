@@ -11,7 +11,7 @@ import { Response } from 'express';
 import { JwtAuthGuard } from '../guard/jwt.guard';
 import { RefreshTokenGuard } from '../guard/refreshToken.guard';
 import { SkipThrottle, Throttle, ThrottlerGuard } from '@nestjs/throttler';
-
+import { ChildLoginDto } from '../dtos/childLogin.dto';
 
 @UseGuards(ThrottlerGuard)
 @Controller('auth')
@@ -31,7 +31,7 @@ export class AuthController {
     return this.authService.registerParent(dto);
   }
 
-  @Throttle({default:{limit:5, ttl : 60_000}})
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
   @Post('/login')
   async login(@Body() dto: LoginDto, @Res({ passthrough: true }) res: Response) {
     const result = await this.authService.login(dto);
@@ -45,7 +45,7 @@ export class AuthController {
   }
 
   @Post('/forgot-password')
-  @Throttle({default:{limit:2, ttl : 60_000}})
+  @Throttle({ default: { limit: 2, ttl: 60_000 } })
   forgetPassword(@Body() email: SendEmailDto) {
     return this.authService.sendOtp(email);
   }
@@ -61,7 +61,7 @@ export class AuthController {
   }
 
   @UseGuards(RefreshTokenGuard)
-  @Throttle({default:{limit:3, ttl : 60_000}})
+  @Throttle({ default: { limit: 3, ttl: 60_000 } })
   @Post('/refresh-token')
   async refreshToken(@Req() req, @Res({ passthrough: true }) res: Response) {
     const { userId, refreshToken } = req.user;
@@ -73,7 +73,7 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Post('logout')
-  async logout(@Req() req , @Res({ passthrough: true }) res: Response) {
+  async logout(@Req() req, @Res({ passthrough: true }) res: Response) {
     const { userId } = req.user;
     await this.authService.logout(userId);
     this.cookieService.clearRefreshToken(res);
@@ -90,8 +90,8 @@ export class AuthController {
   }
 
   @Post('/resend-otp')
-  @Throttle({default:{limit:1, ttl : 60_000}})
-  resendOtp(@Body() email:SendEmailDto) {
-    return this.authService.resendOtp(email)
+  @Throttle({ default: { limit: 1, ttl: 60_000 } })
+  resendOtp(@Body() email: SendEmailDto) {
+    return this.authService.resendOtp(email);
   }
 }

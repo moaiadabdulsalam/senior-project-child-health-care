@@ -39,8 +39,8 @@ export class ExceptionRepository {
     });
   }
 
-  async createException(data: Prisma.ExceptionCreateInput): Promise<Exception> {
-    return await this.prisma.exception.create({ data });
+  async createException(data: Prisma.ExceptionCreateInput) {
+    return await this.prisma.exception.create({ data, include: { profileDoctor: true } });
   }
 
   async updateException(data: Prisma.ExceptionUpdateInput, id: string): Promise<Exception> {

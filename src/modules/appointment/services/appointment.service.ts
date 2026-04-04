@@ -2,16 +2,18 @@ import { BadRequestException, Injectable, NotFoundException, Req } from '@nestjs
 import { AppointmentRepository } from '../repositories/appointment.repository';
 import { CreateAppointmentDto } from '../dtos/createAppointment.dto';
 import { AuthRepository } from 'src/modules/auth/repositories/auth.repository';
-import { AppointmentStatus, DoctorStatus, Prisma, Role } from '@prisma/client';
+import { AppointmentStatus, DoctorStatus, NotificationType, Prisma, Role } from '@prisma/client';
 import { UpdateAppointmentDto } from '../dtos/updateAppointment.dto';
 import { stat } from 'fs';
 import { CancelAppointmentDto } from '../dtos/cancelAppointment.dto';
+import { NotificationService } from 'src/modules/notification/services/notification.service';
 
 @Injectable()
 export class AppointmentService {
   constructor(
     private readonly AppointmentRepo: AppointmentRepository,
     private userRepo: AuthRepository,
+    private notificaiton: NotificationService,
   ) {}
 
   private async checkUserAndProfileParent(userId: string) {
@@ -230,17 +232,31 @@ export class AppointmentService {
   }
   async updateAppointment(userId: string, id: string, dto: UpdateAppointmentDto) {
     await this.checkUserAndProfileParent(userId);
-    await this.getOne(id);
+    const lastAppoinment = await this.getOne(id);
     const appointment = await this.AppointmentRepo.updateAppointment(
       {
         childId: dto.childId ?? undefined,
         reason: dto.reason ?? undefined,
         notes: dto.notes ?? undefined,
         date: dto.date ?? undefined,
+        reminderSent: dto.date ? false : undefined,
       },
       id,
     );
-
+    if (dto.date) {
+      await this.notificaiton.create({
+        title: 'appointment date updated',
+        type: NotificationType.APPOINTMENT_UPDATE_DATE,
+        message: `appointment date updated from ${lastAppoinment.date} to ${dto.date}`,
+        senderId: appointment.profileParent.userId,
+        userId: appointment.profileDoctor.userId,
+        data: {
+          appointmentId: appointment.id,
+          doctorID: appointment.doctorId,
+          parentId: appointment.parentId,
+        },
+      });
+    }
     return appointment;
   }
   async deleteAppointment(id: string) {
@@ -249,20 +265,46 @@ export class AppointmentService {
     if (appointment.status === AppointmentStatus.CONFIRMED) {
       ////refund
     }
+    await this.notificaiton.create({
+      title: 'appointment deleted',
+      type: NotificationType.APPOINTMENT_DELETED,
+      message: `appointment deleted from parent`,
+      senderId: appointment.profileParent.userId,
+      userId: appointment.profileDoctor.userId,
+      data: {
+        appointmentId: appointment.id,
+        doctorId: appointment.doctorId,
+        parentId: appointment.parentId,
+      },
+    });
     return {
       deletedAppointment,
       message: 'appointment deleted successfuly',
     };
   }
   async cancelAppointment(id: string, dto: CancelAppointmentDto) {
-    await this.getOne(id);
+    const appointment = await this.getOne(id);
     await this.AppointmentRepo.updateAppointment(
       {
         status: AppointmentStatus.CANCELLED,
       },
       id,
     );
+    await this.notificaiton.create({
+      title: 'appointment canceled',
+      type: NotificationType.APPOINTMENT_CANCELLED,
+      message: `appointment caneled because ${dto.reason}`,
+      senderId: appointment.profileDoctor.userId,
+      userId: appointment.profileParent.userId,
+      data: {
+        appointmentId: appointment.id,
+        doctorId: appointment.doctorId,
+        parentId: appointment.parentId,
+      },
+    });
 
-    //send notification to the client
+    return {
+      message: 'appointment canceled successfully',
+    };
   }
 }

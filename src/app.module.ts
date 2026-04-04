@@ -17,9 +17,10 @@ import { DoctorsParentModule } from './modules/doctors-parent/doctors-parent.mod
 import { MedicationModule } from './modules/medication/medication.module';
 import { StripeModule } from './modules/strip/strip.module';
 import { NotificationModule } from './modules/notification/notification.module';
-
+import { ScheduleModule } from '@nestjs/schedule';
 @Module({
   imports: [
+    ScheduleModule.forRoot(),
     ThrottlerModule.forRoot([
       {
         ttl: 60_000,
@@ -51,6 +52,5 @@ import { NotificationModule } from './modules/notification/notification.module';
       useClass: ThrottlerGuard,
     },
   ],
-  
 })
 export class AppModule {}

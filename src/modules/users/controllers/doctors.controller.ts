@@ -27,14 +27,15 @@ export class DoctorsController {
     return this.doctorsService.getOne(id);
   }
 
-  @Get('/requestDoctor')
-  requestDoctor(){
-    return this.doctorsService.getRequestDoctor()
+  @SkipThrottle()
+  @Get('/request/requestDoctor')
+  requestDoctor() {
+    return this.doctorsService.getRequestDoctor();
   }
 
   @Patch('/requestDoctor/:id')
-  answerRequest(@Body() dto: AnswerRequestDto , @Param('id') id : string){
-    return this.doctorsService.answerRequeset( id ,dto)
+  answerRequest(@Body() dto: AnswerRequestDto, @Param('id') id: string) {
+    return this.doctorsService.answerRequeset(id, dto);
   }
 
   @Post()
@@ -42,9 +43,8 @@ export class DoctorsController {
     return this.doctorsService.createDoctor(dto);
   }
 
-  @Patch('/:id')/////user id always
+  @Patch('/:id') /////user id always
   updateDoctorsActivity(@Param('id') id: string, @Body() dto: UpdateActivityDto) {
     return this.doctorsService.updateDoctorsActivity(id, dto);
   }
-  
 }

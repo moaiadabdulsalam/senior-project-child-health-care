@@ -91,6 +91,24 @@ enum MedicationStatus {
   ACTIVE
 }
 
+enum NotificationType {
+  APPOINTMENT_UPDATE_DATE
+  APPOINTMENT_REMINDER
+  APPOINTMENT_DELETED
+  APPOINTMENT_CONFIRMED
+  APPOINTMENT_CANCELLED
+  CHILD_LOGIN
+  MEDICATION_REMINDER
+  DOCTOR_IN_EXCEPTION
+  DOCTOR_DAY_IN
+  DOCTOR_VERIFIED
+  DOCTOR_REJECTED
+  PAYMENT_SUCCESS
+  PAYMENT_FAILED
+  CHILD_PROFILE_UPDATED
+  SYSTEM_ALERT
+}
+
 /**
  * ----***** MODELS *****----
  */
@@ -104,7 +122,9 @@ model User {
   hashedRefreshToken String?
   profileParent      ProfileParent?
   profileDoctory     ProfileDoctor?
-  notification       Notification[]
+
+  receivedNotifications Notification[] @relation("NotificationRecipient")
+  sentNotifications     Notification[] @relation("NotificationSender")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -221,43 +241,50 @@ model Exception {
 }
 
 model Notification {
-  id      String  @id @default(uuid())
-  userId  String
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id String @id @default(uuid())
+
+  userId String
+  user   User   @relation("NotificationRecipient", fields: [userId], references: [id], onDelete: Cascade)
+
+  senderId String?
+  sender   User?   @relation("NotificationSender", fields: [senderId], references: [id], onDelete: SetNull)
+
+  type    NotificationType
+  data    Json?
   title   String
   message String
-  isRead  Boolean @default(false)
 
-  sentAt DateTime?
+  isRead Boolean   @default(false)
+  sentAt DateTime  @default(now())
   readAt DateTime?
 
-  from      String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([userId])
+  @@index([userId, senderId])
+  @@index([isRead])
 }
 
 model Payment {
   id String @id @default(uuid())
 
-  appointmentId String      @unique
-  appointment   Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  appointmentId String        @unique
+  appointment   Appointment   @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
   parentId      String
   profileParent ProfileParent @relation(fields: [parentId], references: [id], onDelete: Cascade)
   doctorId      String
   profileDoctor ProfileDoctor @relation(fields: [doctorId], references: [id], onDelete: Cascade)
 
-  amount        Decimal     @db.Decimal(6, 2)
-  currency  Currency
-  status    PaymentStatus
+  amount                Decimal       @db.Decimal(6, 2)
+  currency              Currency
+  status                PaymentStatus
   stripeSessionId       String?       @unique
   stripePaymentIntentId String?       @unique
   stripeCustomerId      String?
 
   paidAt    DateTime?
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
   @@index([doctorId, appointmentId, parentId])
 }
@@ -272,16 +299,17 @@ model Appointment {
   child   Child  @relation(fields: [childId], references: [id])
 
   parentId      String
-  profileParent ProfileParent @relation(fields: [parentId], references: [id])
+  profileParent ProfileParent     @relation(fields: [parentId], references: [id])
+  reminderSent  Boolean           @default(false)
+  payment       Payment?
+  status        AppointmentStatus
+  date          DateTime
+  notes         Json?
+  reason        String
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
 
-  payment   Payment?
-  status    AppointmentStatus
-  date      DateTime
-  notes     Json?
-  reason    String
-  createdAt DateTime          @default(now())
-  updatedAt DateTime          @updatedAt
-
+  @@index([date, reminderSent])
   @@index([doctorId, childId, parentId])
 }
 
@@ -298,27 +326,34 @@ model Medication {
   mdeicineNameArabic String?
   medicineUnit       MedicineUnit
   medicineAmount     String
-  Duration           DateTime
-  amountPerDay       String
+  duration           DateTime
+  amountPerDay       Int
   firstDoseTime      DateTime
   firstDoseDate      DateTime
-  rememberTime       String
+  rememberNotify     Boolean          @default(false)
   status             MedicationStatus
   createdAt          DateTime         @default(now())
   updatedAt          DateTime         @updatedAt
+  medicine           MedicationDose[]
 
+  @@index([firstDoseDate, firstDoseTime])
   @@index([medicineName, childId])
 }
 
-model PasswordChange {
-  id        String   @id @default(uuid())
-  email     String
-  otp       String
-  expireAt  DateTime
-  used      Boolean
-  createdAt DateTime @default(now())
+model MedicationDose {
+  id           String     @id @default(uuid())
+  medicationId String
+  medication   Medication @relation(fields: [medicationId], references: [id], onDelete: Cascade)
 
-  @@index([email])
+  scheduledAt  DateTime
+  reminderSent Boolean  @default(false)
+  taken        Boolean  @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([medicationId, scheduledAt])
+  @@index([scheduledAt, medicationId])
 }
 
 model Game {

@@ -40,21 +40,23 @@ export class AuthRepository {
     return this.prisma.user.findFirst({
       where: {
         email,
-        isActive:true
+        isActive: true,
       },
-      include:{
-        profileDoctory:true,
-        profileParent:true
-      }
-      
+      include: {
+        profileDoctory: true,
+        profileParent: true,
+      },
     });
   }
 
-  async findUserById(userId: string): Promise< User | any > {
+  async findAllUsers(where : Prisma.UserWhereInput) {
+    return this.prisma.user.findMany({ where, select: { id: true } });
+  }
+  async findUserById(userId: string): Promise<User | any> {
     return this.prisma.user.findFirst({
       where: {
         id: userId,
-        isActive:true
+        isActive: true,
       },
       include: {
         profileDoctory: true,
@@ -64,14 +66,14 @@ export class AuthRepository {
   }
   async updateUserPassword(id: string, data: string) {
     await this.prisma.user.update({
-      where: { id ,isActive:true },
+      where: { id, isActive: true },
       data,
     });
   }
 
   async updateUserRefreshToken(id: string, newRefreshToken: string | null) {
     await this.prisma.user.update({
-      where: { id  , isActive : true},
+      where: { id, isActive: true },
       data: {
         hashedRefreshToken: newRefreshToken,
       },

@@ -1,11 +1,12 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { DoctorStatus, ExceptionType, Prisma } from '@prisma/client';
+import { DoctorStatus, ExceptionType, NotificationType, Prisma } from '@prisma/client';
 import { AuthRepository } from 'src/modules/auth/repositories/auth.repository';
 import { AvailabilityPolicyRepository } from 'src/modules/availability-policy/repositories/availabilityPolicy.repositories';
 import { ExceptionRepository } from '../repositories/exception.repositories';
 import { CreateExceptionDto } from '../dtos/createException.dto';
 import { UpdateExcpetionDto } from '../dtos/updateException.dto';
 import { AppointmentRepository } from 'src/modules/appointment/repositories/appointment.repository';
+import { NotificationService } from 'src/modules/notification/services/notification.service';
 
 @Injectable()
 export class ExceptionService {
@@ -14,6 +15,7 @@ export class ExceptionService {
     private readonly policy: AvailabilityPolicyRepository,
     private readonly exceptionRepo: ExceptionRepository,
     private readonly appointmentRepo: AppointmentRepository,
+    private readonly notification: NotificationService,
   ) {}
 
   private async checkUserAndProfileDoctor(userId: string) {
@@ -183,13 +185,29 @@ export class ExceptionService {
         throw new BadRequestException('There are appointments during this time range');
       }
     }
-    return await this.exceptionRepo.createException({
+    const appointments = await this.appointmentRepo.getAppointment(doctorId);
+
+    const exceptions = await this.exceptionRepo.createException({
       reason: dto.reason,
       startTime: normalizedStart,
       endTime: normalizedEnd,
       type: dto.type,
       profileDoctor: { connect: { id: doctorId } },
     });
+    const userIds = appointments.map((id) => id.profileParent.userId);
+    let message =
+      dto.type === ExceptionType.DAY_OFF
+        ? 'Doctor in Exception Today'
+        : `Doctor in exception from ${dto.startTime} to ${dto.endTime} `;
+    await this.notification.createManyForUsers(userIds, {
+      title: 'Doctor in Exception',
+      type: NotificationType.DOCTOR_IN_EXCEPTION,
+      message,
+      senderId: exceptions.profileDoctor.userId,
+    });
+    return {
+      exceptions,
+    };
   }
 
   async updateException(dto: UpdateExcpetionDto, id: string, userId: string) {

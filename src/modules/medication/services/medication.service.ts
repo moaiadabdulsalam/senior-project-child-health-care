@@ -10,6 +10,7 @@ import { UpdateMedicationDto } from '../dtos/updateMedication.dto';
 import { MedicationStatus, Prisma, Role } from '@prisma/client';
 import { AuthRepository } from 'src/modules/auth/repositories/auth.repository';
 import { ChildService } from 'src/modules/child/services/child.service';
+import { MedicationDoseService } from './medication-dose.service';
 
 @Injectable()
 export class MedicationService {
@@ -17,6 +18,7 @@ export class MedicationService {
     private readonly medicationRepo: medicationRepository,
     private readonly userRepo: AuthRepository,
     private readonly childService: ChildService,
+    private readonly doseService: MedicationDoseService,
   ) {}
 
   private async checkUserAndProfileParent(userId: string) {
@@ -120,15 +122,16 @@ export class MedicationService {
       medicineName: dto.medicineName,
       mdeicineNameArabic: dto.mdeicineNameArabic ?? undefined,
       medicineAmount: dto.medicineAmount,
-      Duration: dto.Duration,
+      duration: dto.duration,
       firstDoseDate,
       firstDoseTime,
       amountPerDay: dto.amountPerDay,
       status: MedicationStatus.ACTIVE,
-      rememberTime: dto.rememberTime,
       medicineUnit: dto.medicineUnit,
+      rememberNotify: dto.rememberNotify,
     });
 
+    await this.doseService.generateDoses(data.id);
     return data;
   }
 
@@ -154,6 +157,10 @@ export class MedicationService {
     }
 
     const updatedMediction = await this.medicationRepo.updateMedication({ ...dto }, id);
+
+    if (dto.amountPerDay || dto.duration || dto.firstDoseDate || dto.firstDoseTime) {
+      await this.doseService.regenerateDoses(id);
+    }
     return {
       updatedMediction,
       message: 'medication updated Successfully',

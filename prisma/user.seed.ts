@@ -280,67 +280,8 @@ async function main() {
   });
 
  
-  /**
-   * 9) MEDICATIONS
-   */
-  const medication1 = await prisma.medication.create({
-    data: {
-      childId: child1.id,
-      parentId: parentProfile.id,
-      medicineName: 'Paracetamol',
-      mdeicineNameArabic: 'باراسيتامول',
-      medicineUnit: MedicineUnit.ml,
-      medicineAmount: '5',
-      Duration: new Date('2026-04-20T00:00:00.000Z'),
-      amountPerDay: '3',
-      firstDoseTime: new Date('2026-04-15T08:00:00.000Z'),
-      firstDoseDate: new Date('2026-04-15T00:00:00.000Z'),
-      rememberTime: 'Every 8 hours',
-      status: MedicationStatus.ACTIVE,
-    },
-  });
 
-  const medication2 = await prisma.medication.create({
-    data: {
-      childId: child2.id,
-      parentId: parentProfile.id,
-      medicineName: 'Vitamin D',
-      mdeicineNameArabic: 'فيتامين د',
-      medicineUnit: MedicineUnit.drop,
-      medicineAmount: '2',
-      Duration: new Date('2026-05-01T00:00:00.000Z'),
-      amountPerDay: '1',
-      firstDoseTime: new Date('2026-04-16T09:00:00.000Z'),
-      firstDoseDate: new Date('2026-04-16T00:00:00.000Z'),
-      rememberTime: 'Once daily after breakfast',
-      status: MedicationStatus.ACTIVE,
-    },
-  });
 
-  /**
-   * 10) NOTIFICATIONS
-   */
-  const notification1 = await prisma.notification.create({
-    data: {
-      userId: parentUser.id,
-      title: 'Appointment Confirmed',
-      message: 'Your appointment has been confirmed successfully.',
-      isRead: false,
-      sentAt: new Date(),
-      from: 'SYSTEM',
-    },
-  });
-
-  const notification2 = await prisma.notification.create({
-    data: {
-      userId: doctorUser.id,
-      title: 'New Appointment',
-      message: 'You have a new appointment scheduled.',
-      isRead: false,
-      sentAt: new Date(),
-      from: 'SYSTEM',
-    },
-  });
 }
 
 main()

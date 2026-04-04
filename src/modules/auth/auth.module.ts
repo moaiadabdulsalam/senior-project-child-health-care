@@ -10,9 +10,10 @@ import { ProfileDoctorRepository } from './repositories/profileDoctory.repositor
 import { RedisModule } from 'src/redis/redis.module';
 import { CookieService } from './services/cookie.service';
 import { RefreshTokenStrategy } from './strategies/refreshToken.strategy';
+import { NotificationModule } from '../notification/notification.module';
 
 @Module({
-  imports: [JwtModule.register({}), RedisModule],
+  imports: [JwtModule.register({}), RedisModule, NotificationModule],
   controllers: [AuthController],
   providers: [
     ProfileDoctorRepository,
@@ -26,6 +27,6 @@ import { RefreshTokenStrategy } from './strategies/refreshToken.strategy';
     ProfileParentRepository,
     ProfileDoctorRepository,
   ],
-  exports: [AuthService, JwtAuthGuard, AuthRepository],
+  exports: [AuthService, JwtAuthGuard, AuthRepository, JwtModule],
 })
 export class AuthModule {}

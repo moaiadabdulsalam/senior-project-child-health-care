@@ -3,12 +3,14 @@ import { ParentsRepository } from '../repositories/parents.repository';
 import { UpdateActivityDto } from '../dto/updateActivity.dto';
 import { AuthRepository } from 'src/modules/auth/repositories/auth.repository';
 import { Role } from '@prisma/client';
+import { AuthService } from 'src/modules/auth/services/auth.service';
 
 @Injectable()
 export class ParentsService {
   constructor(
     private readonly parentsRepo: ParentsRepository,
     private readonly userRepo: AuthRepository,
+    private readonly authService: AuthService,
   ) {}
 
   private async checkUserAndProfileParent(userId: string) {
@@ -49,6 +51,31 @@ export class ParentsService {
       throw new NotFoundException('no child exist');
     }
     await this.parentsRepo.updateAccountParentAndChildsActivity(id, dto.isActive, childIds);
+
+    const isActive = dto.isActive;
+
+    const subject = isActive
+      ? 'Your account has been reactivated'
+      : 'Your account has been deactivated';
+
+    const html = isActive
+      ? `
+        <div style="font-family: Arial, sans-serif; line-height: 1.8;">
+          <h2>Hello Mr. ${parent.profileParent?.fullName ?? ''}</h2>
+          <p>Your account has been reactivated by the admin.</p>
+        </div>
+      `
+      : `
+        <div style="font-family: Arial, sans-serif; line-height: 1.8;">
+          <h2>Hello Mr. ${parent.profileParent?.fullName ?? ''}</h2>
+          <p>Your account has been deactivated by the admin.</p>
+        </div>
+      `;
+    try {
+      await this.authService.sendToEmail(parent.email, html, subject);
+    } catch (error) {
+      console.error('Failed to send doctor activity email:', error);
+    }
     return {
       message: 'updated user successfully',
     };

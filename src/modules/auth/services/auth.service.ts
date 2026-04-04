@@ -19,7 +19,8 @@ import * as nodemailer from 'nodemailer';
 import { RedisService } from 'src/redis/redis.service';
 import { VerifyOtpDto } from '../dtos/verifyOtp.dto';
 import { ResetPasswordDto } from '../dtos/resetPassword.dto';
-import { DoctorStatus } from '@prisma/client';
+import { DoctorStatus, NotificationType, Role } from '@prisma/client';
+import { NotificationService } from 'src/modules/notification/services/notification.service';
 @Injectable()
 export class AuthService {
   constructor(
@@ -30,6 +31,7 @@ export class AuthService {
     private readonly config: ConfigService,
     private readonly jwt: JwtService,
     private readonly redis: RedisService,
+    private readonly notification: NotificationService,
   ) {}
 
   private async signAccessToken(user: any) {
@@ -135,9 +137,9 @@ export class AuthService {
       const parent = await this.profileParentRepo.registerParentInfo(
         {
           fullName: dto.fullName,
-          fullNameArabic:dto.fullNameArabic??undefined,
+          fullNameArabic: dto.fullNameArabic ?? undefined,
           address: dto.address,
-          addressArabic:dto.addressArabic??undefined,
+          addressArabic: dto.addressArabic ?? undefined,
           phone: dto.phone,
           user: {
             connect: { id: user.id },
@@ -145,6 +147,14 @@ export class AuthService {
         },
         tx,
       );
+      await this.notification.createForRole(Role.ADMIN, {
+        title: 'New Parent Registration',
+        message: `A new doctor ${parent.fullName} has registered and is waiting for review.`,
+        type: NotificationType.SYSTEM_ALERT,
+        data: {
+          doctorId: parent.id,
+        },
+      });
 
       return { user, parent };
     });
@@ -171,14 +181,14 @@ export class AuthService {
       const doctor = await this.profileDoctoryRepo.registerDoctorInfo(
         {
           speciality: dto.speciality,
-          specialityArabic:dto.specialityArabic??undefined,
+          specialityArabic: dto.specialityArabic ?? undefined,
           clinicAddress: dto.clinicAddress,
-          clinicNameArabic:dto.clinicAddressArabic??undefined,
+          clinicNameArabic: dto.clinicAddressArabic ?? undefined,
           clinicPhone: dto.clinicPhone ?? '', //بعدل تعديلها في الداتا بيز
           clinicName: dto.clinicName,
-          clinicAddressArabic:dto.clinicNameArabic??undefined,
+          clinicAddressArabic: dto.clinicNameArabic ?? undefined,
           fullName: dto.fullName,
-          fullNameArabic:dto.fullNameArabic??undefined,
+          fullNameArabic: dto.fullNameArabic ?? undefined,
           status: DoctorStatus.VERIFYING,
           description: dto.description,
           phone: dto.phone,
@@ -188,7 +198,14 @@ export class AuthService {
         },
         tx,
       );
-
+      await this.notification.createForRole(Role.ADMIN, {
+        title: 'New Doctor Registration',
+        message: `A new doctor ${doctor.fullName} has registered and is waiting for review.`,
+        type: NotificationType.SYSTEM_ALERT,
+        data: {
+          doctorId: doctor.id,
+        },
+      });
       return { user, doctor };
     });
   }
@@ -212,6 +229,7 @@ export class AuthService {
 
     return { accessToken, refreshToken, user: { email: user.email, role: user.role } };
   }
+
   async sendOtp(dto: SendEmailDto) {
     const user = await this.userRepo.findUserByEmail(dto.email);
     if (!user) {

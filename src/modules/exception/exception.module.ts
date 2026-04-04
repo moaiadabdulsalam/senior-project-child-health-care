@@ -5,9 +5,10 @@ import { AuthModule } from '../auth/auth.module';
 import { AvailabilityPolicyModule } from '../availability-policy/availability-policy.module';
 import { ExceptionRepository } from './repositories/exception.repositories';
 import { AppointmentModule } from '../appointment/appointment.module';
+import { NotificationModule } from '../notification/notification.module';
 
 @Module({
-  imports: [AuthModule, AvailabilityPolicyModule, AppointmentModule],
+  imports: [AuthModule, AvailabilityPolicyModule, AppointmentModule , NotificationModule],
   providers: [ExceptionService, ExceptionRepository],
   controllers: [ExceptionController],
 })

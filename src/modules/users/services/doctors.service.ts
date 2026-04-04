@@ -2,15 +2,17 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { DoctorsRepository } from '../repositories/doctors.repository';
 import { CreateDoctorDto } from '../dto/createUser.dto';
 import * as bcrypt from 'bcrypt';
-import { DoctorStatus, Role } from '@prisma/client';
+import { DoctorStatus, NotificationType, Role } from '@prisma/client';
 import { UpdateActivityDto } from '../dto/updateActivity.dto';
 import { AnswerRequestDto } from '../dto/answerRequest.dto';
 import { AuthService } from 'src/modules/auth/services/auth.service';
+import { NotificationService } from 'src/modules/notification/services/notification.service';
 @Injectable()
 export class DoctorsService {
   constructor(
     private readonly doctorsRep: DoctorsRepository,
     private readonly authService: AuthService,
+    private readonly notification: NotificationService,
   ) {}
 
   async getAllDoctors() {
@@ -35,15 +37,43 @@ export class DoctorsService {
     return await this.doctorsRep.createUserDoctor(data);
   }
   async updateDoctorsActivity(id: string, dto: UpdateActivityDto) {
-    await this.getOne(id);
+    const doctor = await this.getOne(id);
+
     await this.doctorsRep.updateDoctorsActivity(id, dto);
+
+    const isActive = dto.isActive;
+
+    const subject = isActive
+      ? 'Your account has been reactivated'
+      : 'Your account has been deactivated';
+
+    const html = isActive
+      ? `
+        <div style="font-family: Arial, sans-serif; line-height: 1.8;">
+          <h2>Hello Dr. ${doctor.profileDoctory?.fullName ?? ''}</h2>
+          <p>Your account has been reactivated by the admin.</p>
+        </div>
+      `
+      : `
+        <div style="font-family: Arial, sans-serif; line-height: 1.8;">
+          <h2>Hello Dr. ${doctor.profileDoctory?.fullName ?? ''}</h2>
+          <p>Your account has been deactivated by the admin.</p>
+        </div>
+      `;
+
+    try {
+      await this.authService.sendToEmail(doctor.email, html, subject);
+    } catch (error) {
+      console.error('Failed to send doctor activity email:', error);
+    }
+
     return {
       message: 'updated user successfully',
     };
   }
 
   async getRequestDoctor() {
-    return await this.doctorsRep.getRequestDoctor();
+    return this.doctorsRep.getRequestDoctor();
   }
 
   async answerRequeset(id: string, dto: AnswerRequestDto) {
@@ -96,6 +126,14 @@ export class DoctorsService {
       </div>
       `;
       await this.doctorsRep.updateDoctorsActivity(id, { isActive: true });
+      await this.notification.createForRole(Role.ADMIN, {
+        type: NotificationType.DOCTOR_VERIFIED,
+        title: 'doctor register verified',
+        message: `new Doctor ${doctorName} has joined to our system`,
+        data: {
+          doctorUserId: id,
+        },
+      });
     } else {
       subject = 'Your Registration Request Update';
 
@@ -143,6 +181,14 @@ export class DoctorsService {
     }
 
     await this.authService.sendToEmail(request.email, html, subject);
+    await this.notification.createForRole(Role.ADMIN, {
+      type: NotificationType.DOCTOR_REJECTED,
+      title: 'doctor register rejected',
+      message: `doctor register rejected`,
+      data: {
+        doctorUserId: id,
+      },
+    });
     return {
       message: `we ${dto.status} the request`,
     };

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Appointment, Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 
 @Injectable()
@@ -25,10 +25,14 @@ export class AppointmentRepository {
     });
   }
 
-  async getOneAppointment(id: string): Promise<Appointment | null> {
+  async getOneAppointment(id: string) {
     return await this.prisma.appointment.findUnique({
       where: {
         id,
+      },
+      include: {
+        profileDoctor: true,
+        profileParent: true,
       },
     });
   }
@@ -44,6 +48,10 @@ export class AppointmentRepository {
         id,
       },
       data,
+      include: {
+        profileDoctor: true,
+        profileParent: true,
+      },
     });
   }
   async deleteAppointment(id: string) {
@@ -51,18 +59,22 @@ export class AppointmentRepository {
       where: {
         id,
       },
+      include: {
+        profileDoctor: true,
+        profileParent: true,
+      },
     });
   }
-  async cancelAppointment() {}
-  async getAppointmentForPayment(appointmentId : string , parentId :string){
+
+  async getAppointmentForPayment(appointmentId: string, parentId: string) {
     return await this.prisma.appointment.findFirst({
-      where:{
-        id: appointmentId ,
-        parentId
+      where: {
+        id: appointmentId,
+        parentId,
       },
-      include:{
-        payment:true
-      }
-    })
+      include: {
+        payment: true,
+      },
+    });
   }
 }

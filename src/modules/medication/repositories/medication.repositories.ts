@@ -12,7 +12,7 @@ export class medicationRepository {
       where,
     });
   }
-  async getAllMedication(where: Prisma.MedicationWhereInput, skip: number, limit: number) {
+  async getAllMedication(where: Prisma.MedicationWhereInput, skip?: number, limit?: number) {
     return await this.prisma.medication.findMany({
       where,
       take: limit,
