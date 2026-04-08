@@ -10,7 +10,7 @@ export class CreatePolicyDto {
   @IsEnum(WeekDay, { each: true })
   weeklyOffDays: WeekDay[];
 
-  @Min(1)
+  @Min(10)
   slot: number;
 
   @IsOptional()

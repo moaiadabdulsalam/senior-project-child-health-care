@@ -205,10 +205,10 @@ async function main() {
     update: {
       weeklyOffDays: [WeekDay.FRIDAY],
       startWork: new Date('2026-01-01T09:00:00.000Z'),
-      endWork: new Date('2026-01-01T17:00:00.000Z'),
+      endWork: new Date('2026-01-01T13:00:00.000Z'),
       slot: 30,
-      breakStart: new Date('2026-01-01T12:00:00.000Z'),
-      breakEnd: new Date('2026-01-01T13:00:00.000Z'),
+      breakStart: new Date('2026-01-01T10:00:00.000Z'),
+      breakEnd: new Date('2026-01-01T11:00:00.000Z'),
       sessionPrice: '25.00',
     },
     create: {
@@ -231,8 +231,8 @@ async function main() {
       doctorId: doctorProfile.id,
       reason: 'Doctor attending conference',
       type: ExceptionType.DAY_OFF,
-      startTime: new Date('2026-04-10T00:00:00.000Z'),
-      endTime: new Date('2026-04-10T23:59:59.000Z'),
+      startTime: new Date('2026-04-08T00:00:00.000Z'),
+      endTime: new Date('2026-04-08T23:59:59.000Z'),
     },
   });
 
@@ -241,8 +241,8 @@ async function main() {
       doctorId: doctorProfile.id,
       reason: 'Custom reduced hours',
       type: ExceptionType.CUSTOM_AVAILABLE_HOURS,
-      startTime: new Date('2026-04-12T10:00:00.000Z'),
-      endTime: new Date('2026-04-12T14:00:00.000Z'),
+      startTime: new Date('2026-04-08T11:00:00.000Z'),
+      endTime: new Date('2026-04-08T12:00:00.000Z'),
     },
   });
 

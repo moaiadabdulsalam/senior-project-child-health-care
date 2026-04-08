@@ -74,10 +74,4 @@ export class AvailabilityPolicyService {
     return policy;
   }
 
-  async getAvailableSlots(userId: string, date: string) {
-    if (!date) {
-      throw new BadRequestException('date is require');
-    }
-    
-  }
 }

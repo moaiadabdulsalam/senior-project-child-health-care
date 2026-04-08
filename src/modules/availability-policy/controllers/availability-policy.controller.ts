@@ -33,10 +33,6 @@ export class AvailabilityPolicyController {
     return this.availiablityPolicyService.updatePolicy(dto, userId);
   }
 
-  @Get('slots')
-  getAvailableSlots(@Req() req, @Query('date') date: string) {
-    const { userId } = req.user;
-    return this.availiablityPolicyService.getAvailableSlots(userId, date);
-  }
+
    
 }

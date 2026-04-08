@@ -5,9 +5,11 @@ import { AppointmentService } from './services/appointment.service';
 import { AuthModule } from '../auth/auth.module';
 import { NotificationModule } from '../notification/notification.module';
 import { AppointmentReminder } from './jobs/reminderAppointment';
+import { AvailabilityPolicyModule } from '../availability-policy/availability-policy.module';
+import { ExceptionModule } from '../exception/exception.module';
 
 @Module({
-  imports: [AuthModule, NotificationModule],
+  imports: [AuthModule, NotificationModule,AvailabilityPolicyModule , ExceptionModule],
   providers: [AppointmentRepository, AppointmentService, AppointmentReminder],
   exports: [AppointmentRepository],
   controllers: [AppointmentController],

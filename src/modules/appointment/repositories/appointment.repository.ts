@@ -18,14 +18,18 @@ export class AppointmentRepository {
       },
     });
   }
-
+  async getOneAppointment(where: Prisma.AppointmentWhereInput) {
+    return await this.prisma.appointment.findFirst({
+      where,
+    });
+  }
   async count(where: Prisma.AppointmentWhereInput) {
     return await this.prisma.appointment.count({
       where,
     });
   }
 
-  async getOneAppointment(id: string) {
+  async getOneAppointmentById(id: string) {
     return await this.prisma.appointment.findUnique({
       where: {
         id,

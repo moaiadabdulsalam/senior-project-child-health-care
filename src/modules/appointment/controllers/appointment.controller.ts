@@ -21,7 +21,7 @@ import { CancelAppointmentDto } from '../dtos/cancelAppointment.dto';
 import { CreateAppointmentDto } from '../dtos/createAppointment.dto';
 import { UpdateAppointmentDto } from '../dtos/updateAppointment.dto';
 import { AppointmentService } from '../services/appointment.service';
-import { stat } from 'fs';
+import { ParseDatePipe } from 'src/core/pipe/parse-date.pipe';
 
 @UseGuards(JwtAuthGuard, RoleGuard, ThrottlerGuard)
 @Controller()
@@ -51,9 +51,9 @@ export class AppointmentController {
     @Query('search') search?: string,
   ) {
     const { userId } = req.user;
-    return this.appointmentService.getAppointmentsForDoctor(userId , page , limit ,search)
+    return this.appointmentService.getAppointmentsForDoctor(userId, page, limit, search);
   }
-  
+
   @SkipThrottle()
   @Roles(Role.PARENT, Role.DOCTOR)
   @Get('appointment/:id')
@@ -84,6 +84,26 @@ export class AppointmentController {
   @Roles(Role.DOCTOR)
   @Post('doctor/appointment/:id')
   cancelAppointment(@Body() dto: CancelAppointmentDto, @Param('id') id: string) {
-    return this.appointmentService.cancelAppointment(id , dto)
+    return this.appointmentService.cancelAppointment(id, dto);
+  }
+
+  @Roles(Role.DOCTOR)
+  @Get('calender/slot')
+  getSlotPerDay(
+    @Req() req,
+    @Query('date', new DefaultValuePipe(new Date()), ParseDatePipe) date?: Date,
+  ) {
+    const { userId } = req.user;
+    return this.appointmentService.getSlotPerDay(userId, date);
+  }
+
+  @Roles(Role.DOCTOR)
+  @Get('calender/slots')
+  getSlotPerMonth(
+    @Req() req,
+    @Query('date', new DefaultValuePipe(new Date()), ParseDatePipe) date?: Date,
+  ) {
+    const { userId } = req.user;
+    return this.appointmentService.getSlotPerMonth(userId, date);
   }
 }

@@ -2,11 +2,21 @@ import { BadRequestException, Injectable, NotFoundException, Req } from '@nestjs
 import { AppointmentRepository } from '../repositories/appointment.repository';
 import { CreateAppointmentDto } from '../dtos/createAppointment.dto';
 import { AuthRepository } from 'src/modules/auth/repositories/auth.repository';
-import { AppointmentStatus, DoctorStatus, NotificationType, Prisma, Role } from '@prisma/client';
+import {
+  Appointment,
+  AppointmentStatus,
+  DoctorStatus,
+  Exception,
+  NotificationType,
+  Prisma,
+  Role,
+} from '@prisma/client';
 import { UpdateAppointmentDto } from '../dtos/updateAppointment.dto';
 import { stat } from 'fs';
 import { CancelAppointmentDto } from '../dtos/cancelAppointment.dto';
 import { NotificationService } from 'src/modules/notification/services/notification.service';
+import { AvailabilityPolicyRepository } from 'src/modules/availability-policy/repositories/availabilityPolicy.repositories';
+import { ExceptionRepository } from 'src/modules/exception/repositories/exception.repositories';
 
 @Injectable()
 export class AppointmentService {
@@ -14,6 +24,8 @@ export class AppointmentService {
     private readonly AppointmentRepo: AppointmentRepository,
     private userRepo: AuthRepository,
     private notificaiton: NotificationService,
+    private readonly policy: AvailabilityPolicyRepository,
+    private readonly excpetionRepo: ExceptionRepository,
   ) {}
 
   private async checkUserAndProfileParent(userId: string) {
@@ -209,7 +221,7 @@ export class AppointmentService {
   }
 
   async getOne(id: string) {
-    const appointment = await this.AppointmentRepo.getOneAppointment(id);
+    const appointment = await this.AppointmentRepo.getOneAppointmentById(id);
     if (!appointment) {
       throw new NotFoundException('Appointment not found');
     }
@@ -306,5 +318,101 @@ export class AppointmentService {
     return {
       message: 'appointment canceled successfully',
     };
+  }
+
+  async getSlotPerDay(userId: string, date?: Date) {
+    const doctorId = await this.checkUserAndProfileDoctor(userId);
+    const policy = await this.policy.getUniquePolicy(doctorId);
+    if (!policy) {
+      throw new NotFoundException('policy require');
+    }
+
+    let beginWork = policy.startWork;
+    let endWork = policy.endWork;
+    let slot = policy.slot;
+
+    let availiableDate = date ?? new Date();
+    let breakEnd: Date = new Date(availiableDate);
+    let breakStart: Date = new Date(availiableDate);
+    if (policy.breakEnd && policy.breakStart) {
+      breakStart.setHours(
+        policy.breakStart.getHours(),
+        policy.breakStart.getMinutes(),
+        policy.breakStart.getSeconds(),
+        policy.breakStart.getMilliseconds(),
+      );
+
+      breakEnd.setHours(
+        policy.breakEnd.getHours(),
+        policy.breakEnd.getMinutes(),
+        policy.breakEnd.getSeconds(),
+        policy.breakEnd.getMilliseconds(),
+      );
+    }
+    let begin = new Date(availiableDate);
+    begin.setHours(
+      beginWork.getHours(),
+      beginWork.getMinutes(),
+      beginWork.getSeconds(),
+      beginWork.getMilliseconds(),
+    );
+    let end = new Date(availiableDate);
+    end.setHours(
+      endWork.getHours(),
+      endWork.getMinutes(),
+      endWork.getSeconds(),
+      endWork.getMilliseconds(),
+    );
+
+    const arrayOfSlot: { date: Date; break: boolean | Exception; book: Appointment | null }[] = [];
+
+    while (begin < end) {
+      let breakCheck: Exception | boolean = false;
+
+      if (breakStart && breakEnd && begin >= breakStart && begin < breakEnd) {
+        breakCheck = true;
+      }
+
+      const exception = await this.excpetionRepo.getException({
+        startTime: {
+          lte: begin,
+        },
+        endTime: {
+          gte: begin,
+        },
+      });
+      if (exception) {
+        breakCheck = exception;
+      }
+      const where: Prisma.AppointmentWhereInput = {
+        date: begin,
+      };
+      const appointment = await this.AppointmentRepo.getOneAppointment(where);
+      arrayOfSlot.push({ date: new Date(begin), break: breakCheck, book: appointment ?? null });
+      begin.setMinutes(begin.getMinutes() + slot);
+    }
+
+    return arrayOfSlot;
+  }
+
+  async getSlotPerMonth(userId: string, date?: Date) {
+    const doctorId = await this.checkUserAndProfileDoctor(userId);
+    const policy = await this.policy.getUniquePolicy(doctorId);
+    if (!policy) {
+      throw new NotFoundException('policy require');
+    }
+    const availiableDate = date ?? new Date();
+    const numberOfDays = new Date(
+      availiableDate.getFullYear(),
+      availiableDate.getMonth() + 1,
+      0,
+    ).getDate();
+    const result: { date: Date; break: boolean | Exception; book: Appointment | null }[][] = [];
+    for (let i = 1; i <= numberOfDays; i++) {
+      const day = new Date(availiableDate.getFullYear(), availiableDate.getMonth(), i);
+      const slotAllDay = await this.getSlotPerDay(userId, day);
+      result.push(slotAllDay);
+    }
+    return result;
   }
 }
