@@ -16,7 +16,7 @@ export class ProfileController {
 
   @Roles(Role.DOCTOR)
   @Patch('/doctor')
-  updateDoctorProfile(@Req() req, dto: UpdateDoctorProfileDto) {
+  updateDoctorProfile(@Req() req, @Body() dto: UpdateDoctorProfileDto) {
     const { userId } = req.user;
     return this.profileService.updateDoctorProfile(userId, dto);
   }

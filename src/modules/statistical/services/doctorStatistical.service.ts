@@ -65,4 +65,10 @@ export class DoctorStatisticalService {
     const doctorId = await this.checkUserAndProfileDoctor(userId);
     return await this.doctorRepo.totalPatient(doctorId);
   }
+
+  /** Mean age in years of distinct children seen in completed appointments; null if none. */
+  async averagePatientAge(userId: string) {
+    const doctorId = await this.checkUserAndProfileDoctor(userId);
+    return this.doctorRepo.averagePatientAgeYears(doctorId);
+  }
 }

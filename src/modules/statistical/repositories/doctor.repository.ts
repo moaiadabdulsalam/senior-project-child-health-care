@@ -91,4 +91,40 @@ export class DoctorStatisticalRepository {
     });
     return total.length;
   }
+
+  /** Average age in full years at "now" for distinct children in completed appointments. */
+  async averagePatientAgeYears(doctorId: string): Promise<{
+    averageYears: number | null;
+    patientCount: number;
+  }> {
+    const rows = await this.prisma.appointment.findMany({
+      where: {
+        doctorId,
+        status: AppointmentStatus.COMPLETED,
+      },
+      distinct: ['childId'],
+      select: {
+        childId: true,
+        child: { select: { birthDate: true } },
+      },
+    });
+    const birthDates = rows
+      .map((r) => r.child?.birthDate)
+      .filter((d): d is Date => d instanceof Date);
+    if (birthDates.length === 0) {
+      return { averageYears: null, patientCount: 0 };
+    }
+    const now = new Date();
+    const agesYears = birthDates.map((bd) => {
+      let years = now.getFullYear() - bd.getFullYear();
+      const m = now.getMonth() - bd.getMonth();
+      if (m < 0 || (m === 0 && now.getDate() < bd.getDate())) years--;
+      return years;
+    });
+    const sum = agesYears.reduce((a, b) => a + b, 0);
+    return {
+      averageYears: Math.round((sum / agesYears.length) * 10) / 10,
+      patientCount: agesYears.length,
+    };
+  }
 }

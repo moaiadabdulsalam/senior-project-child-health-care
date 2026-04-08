@@ -50,7 +50,10 @@ export class MedicationController {
   }
 
   @Patch('/reminder-details/:id')
-  updateSpecficReminderDetails(id: string, @Body() dto: UpdateMedicationDoseDto) {
+  updateSpecficReminderDetails(
+    @Param('id') id: string,
+    @Body() dto: UpdateMedicationDoseDto,
+  ) {
     return this.medicationDoseService.updateDose(id, dto);
   }
 
