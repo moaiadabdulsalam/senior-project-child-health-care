@@ -18,6 +18,7 @@ import { MedicationModule } from './modules/medication/medication.module';
 import { StripeModule } from './modules/strip/strip.module';
 import { NotificationModule } from './modules/notification/notification.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { PublicLandingModule } from './modules/public-landing/public-landing.module';
 @Module({
   imports: [
     ScheduleModule.forRoot(),
@@ -45,6 +46,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     MedicationModule,
     StripeModule,
     NotificationModule,
+    PublicLandingModule,
   ],
   providers: [
     {

@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException, Req } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { AppointmentRepository } from '../repositories/appointment.repository';
 import { CreateAppointmentDto } from '../dtos/createAppointment.dto';
 import { AuthRepository } from 'src/modules/auth/repositories/auth.repository';
@@ -12,7 +12,6 @@ import {
   Role,
 } from '@prisma/client';
 import { UpdateAppointmentDto } from '../dtos/updateAppointment.dto';
-import { stat } from 'fs';
 import { CancelAppointmentDto } from '../dtos/cancelAppointment.dto';
 import { NotificationService } from 'src/modules/notification/services/notification.service';
 import { AvailabilityPolicyRepository } from 'src/modules/availability-policy/repositories/availabilityPolicy.repositories';
@@ -57,12 +56,42 @@ export class AppointmentService {
     return doctorProfile.id;
   }
 
+  private applyAppointmentDateRange(
+    where: Prisma.AppointmentWhereInput,
+    dateFrom?: string,
+    dateTo?: string,
+  ) {
+    let gte: Date | undefined;
+    let lte: Date | undefined;
+    if (dateFrom?.trim()) {
+      const [y, m, d] = dateFrom.split('-').map(Number);
+      if (!y || !m || !d) throw new BadRequestException('dateFrom must be YYYY-MM-DD');
+      gte = new Date(y, m - 1, d, 0, 0, 0, 0);
+    }
+    if (dateTo?.trim()) {
+      const [y, m, d] = dateTo.split('-').map(Number);
+      if (!y || !m || !d) throw new BadRequestException('dateTo must be YYYY-MM-DD');
+      lte = new Date(y, m - 1, d, 23, 59, 59, 999);
+    }
+    if (gte && lte && gte > lte) {
+      throw new BadRequestException('dateFrom must be on or before dateTo');
+    }
+    if (gte || lte) {
+      where.date = {
+        ...(gte && { gte }),
+        ...(lte && { lte }),
+      };
+    }
+  }
+
   async getAppointmentsForParent(
     userId: string,
     page: number,
     limit: number,
     status?: AppointmentStatus,
     search?: string,
+    dateFrom?: string,
+    dateTo?: string,
   ) {
     const parentId = await this.checkUserAndProfileParent(userId);
     if (page < 1) {
@@ -78,6 +107,7 @@ export class AppointmentService {
       parentId,
       ...(status && { status }),
     };
+    this.applyAppointmentDateRange(where, dateFrom, dateTo);
     const token = search?.trim();
     if (token?.length) {
       const raw = token.split(/\s+/);
@@ -142,7 +172,14 @@ export class AppointmentService {
     };
   }
 
-  async getAppointmentsForDoctor(userId: string, page: number, limit: number, search?: string) {
+  async getAppointmentsForDoctor(
+    userId: string,
+    page: number,
+    limit: number,
+    search?: string,
+    dateFrom?: string,
+    dateTo?: string,
+  ) {
     const doctorId = await this.checkUserAndProfileDoctor(userId);
     if (page < 1) {
       throw new BadRequestException('page must be greater than 0');
@@ -156,6 +193,7 @@ export class AppointmentService {
     const where: Prisma.AppointmentWhereInput = {
       doctorId,
     };
+    this.applyAppointmentDateRange(where, dateFrom, dateTo);
     const token = search?.trim();
     if (token?.length) {
       const raw = token.split(/\s+/);

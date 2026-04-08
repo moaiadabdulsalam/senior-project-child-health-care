@@ -26,7 +26,10 @@ export class DoctorController {
   }
 
   @Get('/averagePatientAge')
-  averagePatientAge() {}
+  averagePatientAge(@Req() req) {
+    const { userId } = req.user;
+    return this.doctorService.averagePatientAge(userId);
+  }
 
   @Get('/bookingLastMonth')
   bookingLastMonth(@Req() req) {

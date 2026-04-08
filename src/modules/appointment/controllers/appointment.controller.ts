@@ -36,9 +36,19 @@ export class AppointmentController {
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
     @Query('status') status?: AppointmentStatus,
     @Query('search') search?: string,
+    @Query('dateFrom') dateFrom?: string,
+    @Query('dateTo') dateTo?: string,
   ) {
     const { userId } = req.user;
-    return this.appointmentService.getAppointmentsForParent(userId, page, limit, status, search);
+    return this.appointmentService.getAppointmentsForParent(
+      userId,
+      page,
+      limit,
+      status,
+      search,
+      dateFrom,
+      dateTo,
+    );
   }
 
   @SkipThrottle()
@@ -49,9 +59,18 @@ export class AppointmentController {
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
     @Query('search') search?: string,
+    @Query('dateFrom') dateFrom?: string,
+    @Query('dateTo') dateTo?: string,
   ) {
     const { userId } = req.user;
-    return this.appointmentService.getAppointmentsForDoctor(userId, page, limit, search);
+    return this.appointmentService.getAppointmentsForDoctor(
+      userId,
+      page,
+      limit,
+      search,
+      dateFrom,
+      dateTo,
+    );
   }
 
   @SkipThrottle()

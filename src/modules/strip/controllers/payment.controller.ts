@@ -2,7 +2,6 @@ import { Controller, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
 import { PaymentService } from '../services/payment.service';
 import { JwtAuthGuard } from 'src/modules/auth/guard/jwt.guard';
 import { RoleGuard } from 'src/core/guard/role.guard';
-import { throttle } from 'rxjs';
 import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
 import { Roles } from 'src/core/decorator/role.decorator';
 import { Role } from '@prisma/client';
@@ -21,6 +20,9 @@ export class PaymentController {
 
   @Get('status/:appointmentId')
   async getStatus(@Param('appointmentId') appointmentId: string, @Req() req) {
-    this.paymentService.getPaymentStatusByAppointment(appointmentId, req.user.userId);
+    return this.paymentService.getPaymentStatusByAppointment(
+      appointmentId,
+      req.user.userId,
+    );
   }
 }

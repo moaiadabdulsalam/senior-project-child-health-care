@@ -8,27 +8,40 @@
 
 */
 -- CreateEnum
-CREATE TYPE "NotificationType" AS ENUM ('APPOINTMENT_UPDATE_DATE', 'APPOINTMENT_BOOKED', 'APPOINTMENT_DELETED', 'APPOINTMENT_CONFIRMED', 'APPOINTMENT_CANCELLED', 'CHILD_LOGIN', 'MEDICINE_REMINDER', 'DOCTOR_DAY_IN', 'DOCTOR_VERIFIED', 'DOCTOR_REJECTED', 'PAYMENT_SUCCESS', 'PAYMENT_FAILED', 'CHILD_PROFILE_UPDATED', 'SYSTEM_ALERT');
+DO $$ BEGIN
+    CREATE TYPE "NotificationType" AS ENUM ('APPOINTMENT_UPDATE_DATE', 'APPOINTMENT_BOOKED', 'APPOINTMENT_DELETED', 'APPOINTMENT_CONFIRMED', 'APPOINTMENT_CANCELLED', 'CHILD_LOGIN', 'MEDICINE_REMINDER', 'DOCTOR_DAY_IN', 'DOCTOR_VERIFIED', 'DOCTOR_REJECTED', 'PAYMENT_SUCCESS', 'PAYMENT_FAILED', 'CHILD_PROFILE_UPDATED', 'SYSTEM_ALERT');
+EXCEPTION
+    WHEN duplicate_object THEN NULL;
+END $$;
 
 -- DropIndex
-DROP INDEX "Notification_userId_idx";
+DROP INDEX IF EXISTS "Notification_userId_idx";
 
--- AlterTable
-ALTER TABLE "Notification" DROP COLUMN "from",
-ADD COLUMN     "data" JSONB,
-ADD COLUMN     "senderId" TEXT,
-ADD COLUMN     "type" "NotificationType" NOT NULL,
+-- Existing rows: sentAt was nullable; NOT NULL would fail without backfill
+UPDATE "Notification" SET "sentAt" = CURRENT_TIMESTAMP WHERE "sentAt" IS NULL;
+
+-- AlterTable: NOT NULL type needs a default for existing rows; Prisma schema has no @default — drop it after
+ALTER TABLE "Notification" DROP COLUMN IF EXISTS "from",
+ADD COLUMN IF NOT EXISTS "data" JSONB,
+ADD COLUMN IF NOT EXISTS "senderId" TEXT,
+ADD COLUMN IF NOT EXISTS "type" "NotificationType" NOT NULL DEFAULT 'SYSTEM_ALERT'::"NotificationType",
 ALTER COLUMN "sentAt" SET NOT NULL,
 ALTER COLUMN "sentAt" SET DEFAULT CURRENT_TIMESTAMP;
 
+ALTER TABLE "Notification" ALTER COLUMN "type" DROP DEFAULT;
+
 -- DropTable
-DROP TABLE "PasswordChange";
+DROP TABLE IF EXISTS "PasswordChange";
 
 -- CreateIndex
-CREATE INDEX "Notification_userId_senderId_idx" ON "Notification"("userId", "senderId");
+CREATE INDEX IF NOT EXISTS "Notification_userId_senderId_idx" ON "Notification"("userId", "senderId");
 
 -- CreateIndex
-CREATE INDEX "Notification_isRead_idx" ON "Notification"("isRead");
+CREATE INDEX IF NOT EXISTS "Notification_isRead_idx" ON "Notification"("isRead");
 
 -- AddForeignKey
-ALTER TABLE "Notification" ADD CONSTRAINT "Notification_senderId_fkey" FOREIGN KEY ("senderId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "Notification" ADD CONSTRAINT "Notification_senderId_fkey" FOREIGN KEY ("senderId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN NULL;
+END $$;

@@ -17,7 +17,6 @@ import { JwtAuthGuard } from 'src/modules/auth/guard/jwt.guard';
 import { RoleGuard } from 'src/core/guard/role.guard';
 import { SkipThrottle, ThrottlerGuard } from '@nestjs/throttler';
 import { ExceptionType, Role } from '@prisma/client';
-import { userInfo } from 'os';
 import { CreateExceptionDto } from '../dtos/createException.dto';
 import { UpdateExcpetionDto } from '../dtos/updateException.dto';
 import { Roles } from 'src/core/decorator/role.decorator';
