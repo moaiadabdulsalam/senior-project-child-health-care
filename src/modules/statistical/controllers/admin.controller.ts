@@ -29,6 +29,11 @@ export class AdminController {
   genderDistribution() {
     return this.adminService.genderDistribution();
   }
+
+  @Get('/test')
+  test(){
+    return "hello from rawilay"
+  }
 }
 /*
 total doctor , total parent , total child , total active user ,
