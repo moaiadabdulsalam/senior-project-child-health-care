@@ -136,10 +136,10 @@ export class AdminController {
 
         <div class="card">
           <span class="heart">❤</span>
-          <h1>Hello from Railway</h1>
+          <h1>Hello from medo</h1>
           <p>
-            A romantic touch from your backend server,<br />
-            beautifully delivered with love and elegance.
+           You are so cute my Heart <br />,
+           can you give me a hug ? 
           </p>
         </div>
       </body>
