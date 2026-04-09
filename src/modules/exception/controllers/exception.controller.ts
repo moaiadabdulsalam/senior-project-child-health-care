@@ -65,4 +65,6 @@ export class ExceptionController {
     const { userId } = req.user;
     return this.exceptionService.deleteException(id, userId);
   }
+
+ 
 }

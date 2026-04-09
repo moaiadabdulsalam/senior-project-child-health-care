@@ -241,8 +241,8 @@ async function main() {
       doctorId: doctorProfile.id,
       reason: 'Custom reduced hours',
       type: ExceptionType.CUSTOM_AVAILABLE_HOURS,
-      startTime: new Date('2026-04-08T11:00:00.000Z'),
-      endTime: new Date('2026-04-08T12:00:00.000Z'),
+      startTime: new Date('2026-04-03T11:00:00.000Z'),
+      endTime: new Date('2026-04-03T12:00:00.000Z'),
     },
   });
 

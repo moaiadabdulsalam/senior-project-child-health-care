@@ -46,6 +46,7 @@ enum WeekDay {
 
 enum ExceptionType {
   DAY_OFF
+  DAY_IN
   CUSTOM_UNAVAILABLE_HOURS
   CUSTOM_AVAILABLE_HOURS
 }
@@ -107,6 +108,12 @@ enum NotificationType {
   PAYMENT_FAILED
   CHILD_PROFILE_UPDATED
   SYSTEM_ALERT
+}
+
+enum SlotFilterType  {
+  BOOKED
+  BREAK
+  AVAILABLE
 }
 
 /**

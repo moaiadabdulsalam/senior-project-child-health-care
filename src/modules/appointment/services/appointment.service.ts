@@ -7,15 +7,19 @@ import {
   AppointmentStatus,
   DoctorStatus,
   Exception,
+  ExceptionType,
   NotificationType,
   Prisma,
   Role,
+  SlotFilterType,
 } from '@prisma/client';
 import { UpdateAppointmentDto } from '../dtos/updateAppointment.dto';
 import { CancelAppointmentDto } from '../dtos/cancelAppointment.dto';
 import { NotificationService } from 'src/modules/notification/services/notification.service';
 import { AvailabilityPolicyRepository } from 'src/modules/availability-policy/repositories/availabilityPolicy.repositories';
 import { ExceptionRepository } from 'src/modules/exception/repositories/exception.repositories';
+import { stat } from 'node:fs';
+import { mpJsDayToWeek } from 'src/common/utils/date.util';
 
 @Injectable()
 export class AppointmentService {
@@ -358,7 +362,7 @@ export class AppointmentService {
     };
   }
 
-  async getSlotPerDay(userId: string, date?: Date) {
+  async getSlotPerDay(userId: string, date?: Date, type?: SlotFilterType) {
     const doctorId = await this.checkUserAndProfileDoctor(userId);
     const policy = await this.policy.getUniquePolicy(doctorId);
     if (!policy) {
@@ -402,38 +406,73 @@ export class AppointmentService {
       endWork.getMilliseconds(),
     );
 
-    const arrayOfSlot: { date: Date; break: boolean | Exception; book: Appointment | null }[] = [];
+    const arrayOfSlot: {
+      date: Date;
+      break: boolean | Exception | ExceptionType;
+      book: Appointment | null;
+      status: SlotFilterType;
+    }[] = [];
 
     while (begin < end) {
-      let breakCheck: Exception | boolean = false;
-
-      if (breakStart && breakEnd && begin >= breakStart && begin < breakEnd) {
+      let status: SlotFilterType = SlotFilterType.AVAILABLE;
+      let breakCheck: Exception | boolean | ExceptionType = false;
+       const slotEnd = new Date(begin);
+      slotEnd.setMinutes(slotEnd.getMinutes() + slot);
+      if (breakStart && breakEnd && slotEnd > breakStart && begin < breakEnd) {
         breakCheck = true;
+        status = SlotFilterType.BREAK;
       }
-
+      
       const exception = await this.excpetionRepo.getException({
         startTime: {
-          lte: begin,
+          lt: slotEnd,
         },
         endTime: {
-          gte: begin,
+          gt: begin,
         },
       });
-      if (exception) {
-        breakCheck = exception;
+      const weekday = mpJsDayToWeek(begin.getDay())
+      const isOff = policy.weeklyOffDays.includes(weekday)
+
+      if(isOff && !exception){
+        breakCheck = ExceptionType.DAY_OFF;
+        status = SlotFilterType.BREAK;
       }
+      if (exception && !isOff) {
+        breakCheck = exception;
+        status = SlotFilterType.BREAK;
+      }
+    
       const where: Prisma.AppointmentWhereInput = {
-        date: begin,
+        date: {
+          gt: begin,
+          lt: slotEnd,
+        },
       };
       const appointment = await this.AppointmentRepo.getOneAppointment(where);
-      arrayOfSlot.push({ date: new Date(begin), break: breakCheck, book: appointment ?? null });
+      if (appointment && status === SlotFilterType.AVAILABLE) {
+        status = SlotFilterType.BOOKED;
+      }
+      arrayOfSlot.push({
+        date: new Date(begin),
+        break: breakCheck,
+        book: appointment ?? null,
+        status,
+      });
       begin.setMinutes(begin.getMinutes() + slot);
     }
 
+    if (type === SlotFilterType.BOOKED) {
+      return arrayOfSlot.filter((b) => b.status === SlotFilterType.BOOKED);
+    } else if (type === SlotFilterType.BREAK) {
+      return arrayOfSlot.filter((b) => b.status === SlotFilterType.BREAK);
+    } else if (type === SlotFilterType.AVAILABLE) {
+      return arrayOfSlot.filter((a) => a.status === SlotFilterType.AVAILABLE);
+    }
     return arrayOfSlot;
   }
 
-  async getSlotPerMonth(userId: string, date?: Date) {
+  async getSlotPerMonth(userId: string, date?: Date, type?: SlotFilterType) {
     const doctorId = await this.checkUserAndProfileDoctor(userId);
     const policy = await this.policy.getUniquePolicy(doctorId);
     if (!policy) {
@@ -445,10 +484,38 @@ export class AppointmentService {
       availiableDate.getMonth() + 1,
       0,
     ).getDate();
-    const result: { date: Date; break: boolean | Exception; book: Appointment | null }[][] = [];
+
+    const result: { date: Date; break: boolean | Exception | ExceptionType; book: Appointment | null ,status : SlotFilterType }[][] = [];
     for (let i = 1; i <= numberOfDays; i++) {
+      
       const day = new Date(availiableDate.getFullYear(), availiableDate.getMonth(), i);
-      const slotAllDay = await this.getSlotPerDay(userId, day);
+      const startDayTime = new Date(day)
+      startDayTime.setHours(0,0,0,0)
+      const endDayTime = new Date(day)
+      endDayTime.setHours(23,59,59,1000)
+      const available = await this.excpetionRepo.getException({
+        startTime : {
+          gte : startDayTime
+        },
+        endTime: {
+          lte : endDayTime
+        },
+        type : ExceptionType.CUSTOM_AVAILABLE_HOURS
+      })
+      const weekday = mpJsDayToWeek(day.getDay())
+      const isOff = policy.weeklyOffDays.includes(weekday)
+      if(isOff && !available){
+        result.push([
+          {
+            date: day,
+            break : true,
+            book : null,
+            status  : SlotFilterType.BREAK
+          }  
+        ])
+        continue
+      }
+      const slotAllDay = await this.getSlotPerDay(userId, day, type);
       result.push(slotAllDay);
     }
     return result;

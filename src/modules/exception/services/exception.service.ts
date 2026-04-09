@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { DoctorStatus, ExceptionType, NotificationType, Prisma } from '@prisma/client';
+import { DoctorStatus, ExceptionType, NotificationType, Prisma, Role } from '@prisma/client';
 import { AuthRepository } from 'src/modules/auth/repositories/auth.repository';
 import { AvailabilityPolicyRepository } from 'src/modules/availability-policy/repositories/availabilityPolicy.repositories';
 import { ExceptionRepository } from '../repositories/exception.repositories';
@@ -7,6 +7,7 @@ import { CreateExceptionDto } from '../dtos/createException.dto';
 import { UpdateExcpetionDto } from '../dtos/updateException.dto';
 import { AppointmentRepository } from 'src/modules/appointment/repositories/appointment.repository';
 import { NotificationService } from 'src/modules/notification/services/notification.service';
+import { mpJsDayToWeek } from 'src/common/utils/date.util';
 
 @Injectable()
 export class ExceptionService {
@@ -185,15 +186,24 @@ export class ExceptionService {
         throw new BadRequestException('There are appointments during this time range');
       }
     }
-    const appointments = await this.appointmentRepo.getAppointment(doctorId);
-
+    if(dto.type===ExceptionType.CUSTOM_AVAILABLE_HOURS){
+      const now = new Date()
+      const day = mpJsDayToWeek(now.getDay())
+      const isOff = policy.weeklyOffDays.includes(day)
+      if(!isOff){
+        throw new BadRequestException("only day off can make it In")
+      }
+    }
     const exceptions = await this.exceptionRepo.createException({
-      reason: dto.reason,
+      reason: dto.reason ?? undefined,
       startTime: normalizedStart,
       endTime: normalizedEnd,
       type: dto.type,
       profileDoctor: { connect: { id: doctorId } },
     });
+
+  if(dto.type!==ExceptionType.CUSTOM_AVAILABLE_HOURS){
+    const appointments = await this.appointmentRepo.getAppointment(doctorId);
     const userIds = appointments.map((id) => id.profileParent.userId);
     let message =
       dto.type === ExceptionType.DAY_OFF
@@ -205,6 +215,17 @@ export class ExceptionService {
       message,
       senderId: exceptions.profileDoctor.userId,
     });
+  }
+  else {
+    await this.notification.createForRole(Role.PARENT,{
+      title: 'Doctor Available Today',
+      message: `A doctor ${exceptions.profileDoctor.fullName} is available Today`,
+      type: NotificationType.DOCTOR_DAY_IN,
+      data: {
+        doctorId,
+      },
+    })
+  }
     return {
       exceptions,
     };
@@ -245,4 +266,6 @@ export class ExceptionService {
     await this.getOne(id, userId);
     return await this.exceptionRepo.deleteException(id);
   }
+
+  async makeDayIn() {}
 }

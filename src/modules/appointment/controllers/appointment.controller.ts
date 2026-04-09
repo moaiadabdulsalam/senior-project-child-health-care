@@ -13,7 +13,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { SkipThrottle, ThrottlerGuard } from '@nestjs/throttler';
-import { AppointmentStatus, Role } from '@prisma/client';
+import { AppointmentStatus, Role, SlotFilterType } from '@prisma/client';
 import { Roles } from 'src/core/decorator/role.decorator';
 import { RoleGuard } from 'src/core/guard/role.guard';
 import { JwtAuthGuard } from 'src/modules/auth/guard/jwt.guard';
@@ -111,9 +111,10 @@ export class AppointmentController {
   getSlotPerDay(
     @Req() req,
     @Query('date', new DefaultValuePipe(new Date()), ParseDatePipe) date?: Date,
+    @Query('type') type? : SlotFilterType
   ) {
     const { userId } = req.user;
-    return this.appointmentService.getSlotPerDay(userId, date);
+    return this.appointmentService.getSlotPerDay(userId, date, type);
   }
 
   @Roles(Role.DOCTOR)
@@ -121,8 +122,9 @@ export class AppointmentController {
   getSlotPerMonth(
     @Req() req,
     @Query('date', new DefaultValuePipe(new Date()), ParseDatePipe) date?: Date,
+    @Query('type') type? : SlotFilterType
   ) {
     const { userId } = req.user;
-    return this.appointmentService.getSlotPerMonth(userId, date);
+    return this.appointmentService.getSlotPerMonth(userId, date,type);
   }
 }
