@@ -1,16 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Redis from 'ioredis';
+import 'dotenv/config';
 
 @Injectable()
 export class RedisService {
   private redis: Redis;
 
   constructor(private readonly config: ConfigService) {
-    this.redis = new Redis({
-      host: this.config.get('REDIS_HOST'),
-      port: this.config.get('REDIS_PORT'),
-    });
+    this.redis = new Redis(this.config.getOrThrow('REDIS_URL'));
   }
   async set(key: string, value: string, ttl: number) {
     await this.redis.set(key, value, 'EX', ttl);
