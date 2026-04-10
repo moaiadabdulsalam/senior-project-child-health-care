@@ -1,4 +1,14 @@
-import { Body, Controller, Patch, Post, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  MaxFileSizeValidator,
+  ParseFilePipe,
+  Patch,
+  Req,
+  UploadedFile,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
 import { UpdateDoctorProfileDto } from '../dtos/updateDoctorProfile.dto';
 import { ProfileService } from '../services/profile.service';
 import { JwtAuthGuard } from 'src/modules/auth/guard/jwt.guard';
@@ -8,6 +18,7 @@ import { Role } from '@prisma/client';
 import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
 import { UpdateParentProfileDto } from '../dtos/updateParentProfile.dto';
 import { ChangePasswordDto } from '../dtos/changePass.dto';
+import { FileFieldsInterceptor, FileInterceptor } from '@nestjs/platform-express';
 
 @UseGuards(JwtAuthGuard, RoleGuard, ThrottlerGuard)
 @Controller('profile')
@@ -16,16 +27,46 @@ export class ProfileController {
 
   @Roles(Role.DOCTOR)
   @Patch('/doctor')
-  updateDoctorProfile(@Req() req, @Body() dto: UpdateDoctorProfileDto) {
+  @UseInterceptors(
+    FileFieldsInterceptor([
+      { name: 'image', maxCount: 1 },
+      { name: 'certificate', maxCount: 1 },
+    ]),
+  )
+  updateDoctorProfile(
+    @Req() req,
+    @Body() dto: UpdateDoctorProfileDto,
+    @UploadedFile(
+      new ParseFilePipe({
+        fileIsRequired: false,
+        validators: [new MaxFileSizeValidator({ maxSize: 5000000 })],
+      }),
+    )
+    files: {
+      image?: Express.Multer.File[];
+      certificates?: Express.Multer.File[];
+    },
+  ) {
     const { userId } = req.user;
-    return this.profileService.updateDoctorProfile(userId, dto);
+    return this.profileService.updateDoctorProfile(userId, dto, files);
   }
 
-  @Patch('/parent')
   @Roles(Role.PARENT)
-  updateParentProfile(@Req() req, @Body() dto: UpdateParentProfileDto) {
+  @Patch('/parent')
+  @UseInterceptors(FileInterceptor('image'))
+  updateParentProfile(
+    @Req() req,
+    @Body() dto: UpdateParentProfileDto,
+    @UploadedFile(
+      new ParseFilePipe({
+        fileIsRequired: false,
+        validators: [new MaxFileSizeValidator({ maxSize: 5000000 })],
+      }),
+    )
+    file?: Express.Multer.File,
+  ) {
     const { userId } = req.user;
-    return this.profileService.updateParentProfile(userId, dto);
+    return this.profileService.updateParentProfile(userId, dto, file);
   }
 
   @Throttle({ default: { limit: 3, ttl: 60_000 } })

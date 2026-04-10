@@ -8,9 +8,10 @@ import { MedicationReminder } from './jobs/reminderMedication';
 import { MedicationDosesRepository } from './repositories/medicationDoses.repository';
 import { MedicationDoseService } from './services/medication-dose.service';
 import { NotificationModule } from '../notification/notification.module';
+import { UploadModule } from '../upload/upload.module';
 
 @Module({
-  imports: [AuthModule, ChildModule, NotificationModule],
+  imports: [AuthModule, ChildModule, NotificationModule, UploadModule],
   controllers: [MedicationController],
   providers: [
     MedicationService,

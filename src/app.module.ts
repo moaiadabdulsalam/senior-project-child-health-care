@@ -19,6 +19,7 @@ import { StripeModule } from './modules/strip/strip.module';
 import { NotificationModule } from './modules/notification/notification.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { PublicLandingModule } from './modules/public-landing/public-landing.module';
+import { UploadModule } from './modules/upload/upload.module';
 @Module({
   imports: [
     ScheduleModule.forRoot(),
@@ -47,6 +48,7 @@ import { PublicLandingModule } from './modules/public-landing/public-landing.mod
     StripeModule,
     NotificationModule,
     PublicLandingModule,
+    UploadModule,
   ],
   providers: [
     {

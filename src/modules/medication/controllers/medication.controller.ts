@@ -4,13 +4,17 @@ import {
   DefaultValuePipe,
   Delete,
   Get,
+  MaxFileSizeValidator,
   Param,
+  ParseFilePipe,
   ParseIntPipe,
   Patch,
   Post,
   Query,
   Req,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { MedicationService } from '../services/medication.service';
 import { CreateMedicationDto } from '../dtos/createMedication.dto';
@@ -21,6 +25,7 @@ import { RoleGuard } from 'src/core/guard/role.guard';
 import { SkipThrottle, ThrottlerGuard } from '@nestjs/throttler';
 import { MedicationDoseService } from '../services/medication-dose.service';
 import { UpdateMedicationDoseDto } from '../dtos/updateDose.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @UseGuards(JwtAuthGuard, RoleGuard, ThrottlerGuard)
 @Controller('medication')
@@ -50,10 +55,7 @@ export class MedicationController {
   }
 
   @Patch('/reminder-details/:id')
-  updateSpecficReminderDetails(
-    @Param('id') id: string,
-    @Body() dto: UpdateMedicationDoseDto,
-  ) {
+  updateSpecficReminderDetails(@Param('id') id: string, @Body() dto: UpdateMedicationDoseDto) {
     return this.medicationDoseService.updateDose(id, dto);
   }
 
@@ -63,15 +65,38 @@ export class MedicationController {
   }
 
   @Post()
-  createMedication(@Body() dto: CreateMedicationDto, @Req() req) {
+  @UseInterceptors(FileInterceptor('image'))
+  createMedication(
+    @Body() dto: CreateMedicationDto,
+    @Req() req,
+    @UploadedFile(
+      new ParseFilePipe({
+        fileIsRequired: false,
+        validators: [new MaxFileSizeValidator({ maxSize: 5000000 })],
+      }),
+    )
+    file?: Express.Multer.File,
+  ) {
     const { userId } = req.user;
-    return this.medicationService.createMedication(dto, userId);
+    return this.medicationService.createMedication(dto, userId, file);
   }
 
   @Patch('/:id')
-  updateMedication(@Param('id') id: string, @Body() dto: UpdateMedicationDto, @Req() req) {
+  @UseInterceptors(FileInterceptor('image'))
+  updateMedication(
+    @Param('id') id: string,
+    @Body() dto: UpdateMedicationDto,
+    @Req() req,
+    @UploadedFile(
+      new ParseFilePipe({
+        fileIsRequired: false,
+        validators: [new MaxFileSizeValidator({ maxSize: 5000000 })],
+      }),
+    )
+    file?: Express.Multer.File,
+  ) {
     const { userId } = req.user;
-    return this.medicationService.updateMedicaion(id, dto, userId);
+    return this.medicationService.updateMedicaion(id, dto, userId, file);
   }
 
   @Delete('/:id')

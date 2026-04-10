@@ -1,4 +1,17 @@
-import { Body, Controller, Get, Param, Post, Req, Res, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  MaxFileSizeValidator,
+  Param,
+  ParseFilePipe,
+  Post,
+  Req,
+  Res,
+  UploadedFile,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
 import { AuthService } from '../services/auth.service';
 import { RegisterDoctorDto } from '../dtos/registerDoctor.dto';
 import { RegisterParentDto } from '../dtos/registerParent.dto';
@@ -11,7 +24,7 @@ import { Response } from 'express';
 import { JwtAuthGuard } from '../guard/jwt.guard';
 import { RefreshTokenGuard } from '../guard/refreshToken.guard';
 import { SkipThrottle, Throttle, ThrottlerGuard } from '@nestjs/throttler';
-import { ChildLoginDto } from '../dtos/childLogin.dto';
+import { FileFieldsInterceptor, FileInterceptor } from '@nestjs/platform-express';
 
 @UseGuards(ThrottlerGuard)
 @Controller('auth')
@@ -22,13 +35,41 @@ export class AuthController {
   ) {}
 
   @Post('/register-doctor')
-  registerDoctor(@Body() dto: RegisterDoctorDto) {
-    return this.authService.registerDoctor(dto);
+  @UseInterceptors(
+    FileFieldsInterceptor([
+      { name: 'image', maxCount: 1 },
+      { name: 'certificate', maxCount: 1 },
+    ]),
+  )
+  registerDoctor(
+    @Body() dto: RegisterDoctorDto,
+    @UploadedFile(
+      new ParseFilePipe({
+        fileIsRequired: false,
+        validators: [new MaxFileSizeValidator({ maxSize: 5000000 })],
+      }),
+    )
+    files: {
+      image?: Express.Multer.File[];
+      certificates?: Express.Multer.File[];
+    },
+  ) {
+    return this.authService.registerDoctor(dto,files);
   }
 
   @Post('/register-parent')
-  registerParent(@Body() dto: RegisterParentDto) {
-    return this.authService.registerParent(dto);
+  @UseInterceptors(FileInterceptor('image'))
+  registerParent(
+    @Body() dto: RegisterParentDto,
+    @UploadedFile(
+      new ParseFilePipe({
+        fileIsRequired: false,
+        validators: [new MaxFileSizeValidator({ maxSize: 5000000 })],
+      }),
+    )
+    file?: Express.Multer.File,
+  ) {
+    return this.authService.registerParent(dto, file);
   }
 
   @Throttle({ default: { limit: 5, ttl: 60_000 } })

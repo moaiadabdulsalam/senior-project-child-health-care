@@ -89,6 +89,8 @@ const select = {
       clinicName: true,
       clinicNameArabic: true,
       status: true,
+      certificateKey:true,
+      certificateUrl:true,
       createdAt: true,
       updatedAt: true,
     },

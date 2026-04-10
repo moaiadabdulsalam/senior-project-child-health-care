@@ -36,7 +36,7 @@ export class AdminController {
     return this.adminService.genderDistribution();
   }
 
-  @Get('/test')
+  @Get('/test')///for testin server
   @Header('Content-Type', 'text/html; charset=utf-8')
   test(){
     return `

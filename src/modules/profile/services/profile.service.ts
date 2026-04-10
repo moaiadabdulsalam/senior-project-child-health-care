@@ -2,21 +2,23 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { ProfileRepository } from '../repositories/Profile.repositories';
 import { UpdateDoctorProfileDto } from '../dtos/updateDoctorProfile.dto';
 import { AuthRepository } from 'src/modules/auth/repositories/auth.repository';
-import { DoctorStatus } from '@prisma/client';
+import { DoctorStatus, Role } from '@prisma/client';
 import { UpdateParentProfileDto } from '../dtos/updateParentProfile.dto';
 import { ChangePasswordDto } from '../dtos/changePass.dto';
 import * as bcrypt from 'bcrypt';
+import { UploadService } from 'src/modules/upload/services/upload.service';
 @Injectable()
 export class ProfileService {
   constructor(
     private readonly doctorRepo: ProfileRepository,
     private readonly userRepo: AuthRepository,
+    private readonly uploadService: UploadService,
   ) {}
 
   private async checkUserAndProfileDoctor(userId: string) {
     const user = await this.userRepo.findUserById(userId);
     if (!user) {
-      throw new NotFoundException("user not found");
+      throw new NotFoundException('user not found');
     }
     const doctorProfile = user.profileDoctory;
     if (!doctorProfile || doctorProfile.status !== DoctorStatus.CONFIRMING) {
@@ -26,8 +28,38 @@ export class ProfileService {
     return doctorProfile.id;
   }
 
-  async updateDoctorProfile(userId: string, dto: UpdateDoctorProfileDto) {
+  private async checkUserAndProfileParent(userId: string) {
+    const user = await this.userRepo.findUserById(userId);
+    if (!user) {
+      throw new NotFoundException('user not found');
+    }
+    const parentProfile = user.profileParent;
+    if (!parentProfile || user.role !== Role.PARENT) {
+      throw new NotFoundException('parent profile not found');
+    }
+
+    return parentProfile.id;
+  }
+
+  async updateDoctorProfile(
+    userId: string,
+    dto: UpdateDoctorProfileDto,
+    files: {
+      image?: Express.Multer.File[];
+      certificates?: Express.Multer.File[];
+    },
+  ) {
     const doctorId = await this.checkUserAndProfileDoctor(userId);
+
+    let imageDate: { key: string; url: string } | null = null;
+    if (files.image?.length) {
+      imageDate = await this.uploadService.uploadImage(files.image[0]);
+    }
+
+    let certificateDate: { key: string; url: string } | null = null;
+    if (files.certificates?.length) {
+      certificateDate = await this.uploadService.uploadImage(files.certificates[0]);
+    }
 
     return await this.doctorRepo.updateDoctor(doctorId, {
       fullName: dto.fullName ?? undefined,
@@ -42,17 +74,30 @@ export class ProfileService {
       clinicAddressArabic: dto.clinicAddressArabic ?? undefined,
       clinicPhone: dto.clinicPhone ?? undefined,
       status: dto.status ?? undefined,
+      ...(imageDate ? { imageKey: imageDate.key, imageUrl: imageDate.url } : {}),
+      ...(certificateDate
+        ? { certificateKey: certificateDate.key, certificateUrl: certificateDate.url }
+        : {}),
     });
   }
 
-  async updateParentProfile(userId: string, dto: UpdateParentProfileDto) {
-    const doctorId = await this.checkUserAndProfileDoctor(userId);
-    return await this.doctorRepo.updateParent(doctorId, {
+  async updateParentProfile(
+    userId: string,
+    dto: UpdateParentProfileDto,
+    file?: Express.Multer.File,
+  ) {
+    const parentId = await this.checkUserAndProfileParent(userId);
+    let imageDate: { key: string; url: string } | null = null;
+    if (file) {
+      imageDate = await this.uploadService.uploadImage(file);
+    }
+    return await this.doctorRepo.updateParent(parentId, {
       fullName: dto.fullName ?? undefined,
       fullNameArabic: dto.fullNameArabic ?? undefined,
       address: dto.address ?? undefined,
       addressArabic: dto.addressArabic ?? undefined,
       phone: dto.phone ?? undefined,
+      ...(imageDate ? { imageKey: imageDate.key, imageUrl: imageDate.url } : {}),
     });
   }
 

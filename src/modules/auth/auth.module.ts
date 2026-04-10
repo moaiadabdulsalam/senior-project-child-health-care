@@ -11,9 +11,10 @@ import { RedisModule } from 'src/redis/redis.module';
 import { CookieService } from './services/cookie.service';
 import { RefreshTokenStrategy } from './strategies/refreshToken.strategy';
 import { NotificationModule } from '../notification/notification.module';
+import { UploadModule } from '../upload/upload.module';
 
 @Module({
-  imports: [JwtModule.register({}), RedisModule, NotificationModule],
+  imports: [JwtModule.register({}), RedisModule, NotificationModule , UploadModule],
   controllers: [AuthController],
   providers: [
     ProfileDoctorRepository,

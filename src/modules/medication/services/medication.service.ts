@@ -11,6 +11,7 @@ import { MedicationStatus, Prisma, Role } from '@prisma/client';
 import { AuthRepository } from 'src/modules/auth/repositories/auth.repository';
 import { ChildService } from 'src/modules/child/services/child.service';
 import { MedicationDoseService } from './medication-dose.service';
+import { UploadService } from 'src/modules/upload/services/upload.service';
 
 @Injectable()
 export class MedicationService {
@@ -19,6 +20,7 @@ export class MedicationService {
     private readonly userRepo: AuthRepository,
     private readonly childService: ChildService,
     private readonly doseService: MedicationDoseService,
+    private readonly uploadService: UploadService,
   ) {}
 
   private async checkUserAndProfileParent(userId: string) {
@@ -101,7 +103,7 @@ export class MedicationService {
     return medication;
   }
 
-  async createMedication(dto: CreateMedicationDto, userId: string) {
+  async createMedication(dto: CreateMedicationDto, userId: string, file?: Express.Multer.File) {
     const parentId = await this.checkUserAndProfileParent(userId);
     await this.childService.getById(dto.childId);
     const dataCheck = {
@@ -113,6 +115,10 @@ export class MedicationService {
       throw new BadRequestException('medication is aleardy exist');
     }
 
+    let imageDate: { key: string; url: string } | null = null;
+    if (file) {
+      imageDate = await this.uploadService.uploadImage(file);
+    }
     const firstDoseDate = new Date(dto.firstDoseDate);
     const firstDoseTime = new Date(dto.firstDoseTime);
 
@@ -129,16 +135,26 @@ export class MedicationService {
       status: MedicationStatus.ACTIVE,
       medicineUnit: dto.medicineUnit,
       rememberNotify: dto.rememberNotify,
+      ...(imageDate ? { imageKey: imageDate.key, imageUrl: imageDate.url } : {}),
     });
 
     await this.doseService.generateDoses(data.id);
     return data;
   }
 
-  async updateMedicaion(id: string, dto: UpdateMedicationDto, userId: string) {
+  async updateMedicaion(
+    id: string,
+    dto: UpdateMedicationDto,
+    userId: string,
+    file?: Express.Multer.File,
+  ) {
     await this.checkUserAndProfileParent(userId);
     if (dto.childId) {
       throw new BadRequestException("can't replace the child");
+    }
+    let imageDate: { key: string; url: string } | null = null;
+    if (file) {
+      imageDate = await this.uploadService.uploadImage(file);
     }
     const medication = await this.getOne(id);
 
@@ -155,8 +171,25 @@ export class MedicationService {
         throw new ConflictException('Medication already exists');
       }
     }
-
-    const updatedMediction = await this.medicationRepo.updateMedication({ ...dto }, id);
+    const firstDoseDate =  dto.firstDoseDate ? new Date(dto.firstDoseDate) : medication.firstDoseDate;
+    const firstDoseTime = dto.firstDoseTime ? new Date(dto.firstDoseTime) : medication.firstDoseTime;
+    
+    const updatedMediction = await this.medicationRepo.updateMedication(
+      {
+        medicineName: dto.medicineName ?? undefined,
+        mdeicineNameArabic: dto.mdeicineNameArabic ?? undefined,
+        medicineAmount: dto.medicineAmount ?? undefined,
+        duration: dto.duration ?? undefined,
+        firstDoseDate,
+        firstDoseTime,
+        amountPerDay: dto.amountPerDay ?? undefined,
+        status: MedicationStatus.ACTIVE ?? undefined,
+        medicineUnit: dto.medicineUnit ?? undefined,
+        rememberNotify: dto.rememberNotify ?? undefined,
+        ...(imageDate ? { imageKey: imageDate.key, imageUrl: imageDate.url } : {}),
+      },
+      id,
+    );
 
     if (dto.amountPerDay || dto.duration || dto.firstDoseDate || dto.firstDoseTime) {
       await this.doseService.regenerateDoses(id);

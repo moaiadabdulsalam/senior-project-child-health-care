@@ -110,7 +110,7 @@ enum NotificationType {
   SYSTEM_ALERT
 }
 
-enum SlotFilterType  {
+enum SlotFilterType {
   BOOKED
   BREAK
   AVAILABLE
@@ -149,6 +149,8 @@ model ProfileParent {
   phone          String
   address        String?
   addressArabic  String?
+  imageUrl       String?
+  imageKey       String?
 
   child       Child[]
   appointment Appointment[]
@@ -176,6 +178,10 @@ model ProfileDoctor {
   clinicAddressArabic String?
   clinicName          String?
   clinicNameArabic    String?
+  imageUrl            String?
+  imageKey            String?
+  certificateUrl      String?
+  certificateKey      String?
   status              DoctorStatus
 
   exception          Exception[]
@@ -202,6 +208,8 @@ model Child {
   photo          String?
   isActive       Boolean? @default(true)
   role           Role
+  imageUrl       String?
+  imageKey       String?
 
   gameSessions GameSession[]
   appointment  Appointment[]
@@ -339,9 +347,12 @@ model Medication {
   firstDoseDate      DateTime
   rememberNotify     Boolean          @default(false)
   status             MedicationStatus
-  createdAt          DateTime         @default(now())
-  updatedAt          DateTime         @updatedAt
-  medicine           MedicationDose[]
+  imageUrl           String?
+  imageKey           String?
+
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  medicine  MedicationDose[]
 
   @@index([firstDoseDate, firstDoseTime])
   @@index([medicineName, childId])
@@ -371,6 +382,8 @@ model Game {
   minAge          Int?
   maxAge          Int?
   difficultyLevel Int?
+  imageUrl        String?
+  imageKey        String?
   isActive        Boolean  @default(true)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt

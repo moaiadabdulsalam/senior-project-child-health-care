@@ -21,6 +21,7 @@ import { VerifyOtpDto } from '../dtos/verifyOtp.dto';
 import { ResetPasswordDto } from '../dtos/resetPassword.dto';
 import { DoctorStatus, NotificationType, Role } from '@prisma/client';
 import { NotificationService } from 'src/modules/notification/services/notification.service';
+import { UploadService } from 'src/modules/upload/services/upload.service';
 @Injectable()
 export class AuthService {
   constructor(
@@ -32,6 +33,7 @@ export class AuthService {
     private readonly jwt: JwtService,
     private readonly redis: RedisService,
     private readonly notification: NotificationService,
+    private readonly uploadService: UploadService,
   ) {}
 
   private async signAccessToken(user: any) {
@@ -116,10 +118,15 @@ export class AuthService {
     }
   }
 
-  async registerParent(dto: RegisterParentDto) {
+  async registerParent(dto: RegisterParentDto, file?: Express.Multer.File) {
     const existing = await this.userRepo.findUserByEmail(dto.email);
     if (existing) {
       throw new BadRequestException('email already in use');
+    }
+
+    let imageDate: { key: string; url: string } | null = null;
+    if (file) {
+      imageDate = await this.uploadService.uploadImage(file);
     }
 
     const hash = await bcrypt.hash(dto.password, 10);
@@ -144,6 +151,7 @@ export class AuthService {
           user: {
             connect: { id: user.id },
           },
+          ...(imageDate ? { imageKey: imageDate.key, imageUrl: imageDate.url } : {}),
         },
         tx,
       );
@@ -160,10 +168,26 @@ export class AuthService {
     });
   }
 
-  async registerDoctor(dto: RegisterDoctorDto) {
+  async registerDoctor(
+    dto: RegisterDoctorDto,
+    files: {
+      image?: Express.Multer.File[];
+      certificates?: Express.Multer.File[];
+    },
+  ) {
     const existing = await this.userRepo.findUserByEmail(dto.email);
     if (existing) {
       throw new BadRequestException('email already in use');
+    }
+
+    let imageDate: { key: string; url: string } | null = null;
+    if (files.image?.length) {
+      imageDate = await this.uploadService.uploadImage(files.image[0]);
+    }
+
+    let certificateDate: { key: string; url: string } | null = null;
+    if (files.certificates?.length) {
+      certificateDate = await this.uploadService.uploadImage(files.certificates[0]);
     }
 
     const hash = await bcrypt.hash(dto.password, 10);
@@ -195,6 +219,10 @@ export class AuthService {
           user: {
             connect: { id: user.id },
           },
+          ...(imageDate ? { imageKey: imageDate.key, imageUrl: imageDate.url } : {}),
+          ...(certificateDate
+            ? { certificateKey: certificateDate.key, certificateUrl: certificateDate.url }
+            : {}),
         },
         tx,
       );

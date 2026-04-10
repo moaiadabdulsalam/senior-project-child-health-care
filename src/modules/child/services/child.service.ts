@@ -5,12 +5,14 @@ import { UpdateChildDto } from '../dtos/updateChild.dto';
 import { AuthRepository } from 'src/modules/auth/repositories/auth.repository';
 import { Role } from '@prisma/client';
 import { Prisma } from '@prisma/client';
+import { UploadService } from 'src/modules/upload/services/upload.service';
 
 @Injectable()
 export class ChildService {
   constructor(
     private childRepo: ChildRepository,
     private readonly userRepo: AuthRepository,
+    private readonly uploadService: UploadService,
   ) {}
 
   private async checkUserAndProfileParent(userId: string) {
@@ -22,7 +24,6 @@ export class ChildService {
     if (!parentProfile || user.role !== Role.PARENT) {
       throw new NotFoundException('parent profile not found');
     }
-
 
     return parentProfile.id;
   }
@@ -69,8 +70,12 @@ export class ChildService {
     return child;
   }
 
-  async createChild(dto: CreateChildDto, userId: string) {
+  async createChild(dto: CreateChildDto, userId: string, file?: Express.Multer.File) {
     const parentId = await this.checkUserAndProfileParent(userId);
+    let imageDate: { key: string; url: string } | null = null;
+    if (file) {
+      imageDate = await this.uploadService.uploadImage(file);
+    }
     try {
       return await this.childRepo.createChild({
         fullName: dto.fullName,
@@ -87,6 +92,7 @@ export class ChildService {
             id: parentId,
           },
         },
+        ...(imageDate ? { imageKey: imageDate.key, imageUrl: imageDate.url } : {}),
       });
     } catch (e) {
       if (e.code === 'P2002') {
@@ -95,9 +101,13 @@ export class ChildService {
     }
   }
 
-  async updateChild(dto: UpdateChildDto, userId: string, id: string) {
+  async updateChild(dto: UpdateChildDto, userId: string, id: string , file? : Express.Multer.File) {
     await this.getById(id);
     await this.checkUserAndProfileParent(userId);
+    let imageDate: { key: string; url: string } | null = null;
+    if (file) {
+      imageDate = await this.uploadService.uploadImage(file);
+    }
     try {
       return await this.childRepo.updateChild(id, {
         fullName: dto.fullName ?? undefined,
@@ -107,6 +117,7 @@ export class ChildService {
         bloodType: dto.birthDate ?? undefined,
         loginHandle: dto.loginHandle ?? undefined,
         photo: dto.photo ?? undefined,
+        ...(imageDate ? { imageKey: imageDate.key, imageUrl: imageDate.url } : {}),
       });
     } catch (e) {
       if (e.code === 'P2002') {
