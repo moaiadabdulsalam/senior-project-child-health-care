@@ -9,7 +9,6 @@ export class AdminStatisticalRepository {
   async totalParent() {
     return await this.prisma.user.count({
       where: {
-        isActive: true,
         role: Role.PARENT,
       },
     });
@@ -20,7 +19,6 @@ export class AdminStatisticalRepository {
   async doctors() {
     return await this.prisma.user.findMany({
       where: {
-        isActive: true,
         role: Role.DOCTOR,
       },
       select,
@@ -38,20 +36,25 @@ export class AdminStatisticalRepository {
       by: ['speciality'],
       where: {
         speciality: {
-          not: '',
+          notIn:[''],
         },
       },
       _count: { speciality: true },
+      orderBy : {
+        _count:{
+          speciality : 'desc'
+        }
+      }
     });
   }
 
   async genderDistribution() {
     return await this.prisma.child.groupBy({
       by: ['gender'],
-
       _count: { gender: true },
     });
   }
+
 }
 const select = {
   id: true,
@@ -80,3 +83,4 @@ const select = {
     },
   },
 } satisfies Prisma.UserSelect;
+//4/13/2026

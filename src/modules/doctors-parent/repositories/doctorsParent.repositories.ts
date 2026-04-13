@@ -35,7 +35,6 @@ const select = {
   role: true,
   isActive: true,
   createdAt: true,
-  updatedAt: true,
   profileDoctory: {
     select: {
       id: true,
@@ -56,3 +55,4 @@ const select = {
     },
   },
 } satisfies Prisma.UserSelect;
+//4/13/2026

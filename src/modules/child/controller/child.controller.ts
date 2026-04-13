@@ -45,8 +45,9 @@ export class ChildController {
 
   @SkipThrottle()
   @Get('/:id')
-  getOneChild(@Param('id') id: string) {
-    return this.childService.getById(id);
+  getOneChild(@Param('id') id: string, @Req() req) {
+    const { userId } = req.user;
+    return this.childService.getById(id, userId);
   }
 
   @Post()
@@ -81,7 +82,7 @@ export class ChildController {
     file?: Express.Multer.File,
   ) {
     const { userId } = req.user;
-    return this.childService.updateChild(dto, userId, id ,file);
+    return this.childService.updateChild(dto, userId, id, file);
   }
 
   @Delete('/:id')

@@ -21,7 +21,6 @@ export class ParentStatisticalService {
       throw new NotFoundException('parent profile not found');
     }
 
-
     return parentProfile.id;
   }
 
@@ -63,7 +62,8 @@ export class ParentStatisticalService {
         const age = this.calculateAge(childAge);
         return {
           id: child.id,
-          photo: child.photo,
+          imageKey: child.imageKey,
+          imageUrl: child.imageUrl,
           age,
         };
       }),

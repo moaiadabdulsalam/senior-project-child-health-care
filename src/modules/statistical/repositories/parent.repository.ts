@@ -6,51 +6,50 @@ import { PrismaService } from 'src/database/prisma/prisma.service';
 export class ParentStatisticalRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async getPhoto(childId: string){
+  async getPhoto(childId: string) {
     return await this.prisma.child.findFirst({
       where: {
-        id:childId
+        id: childId,
       },
       select: {
         id: true,
-        photo: true,
-        birthDate:true
+        imageKey: true,
+        imageUrl: true,
+        birthDate: true,
       },
     });
   }
 
-  async getGames (childId: string , start : Date  ,end : Date){
+  async getGames(childId: string, start: Date, end: Date) {
     return await this.prisma.gameSession.findMany({
-        where:{
-            childId,
-            startedAt:{
-                gte:start
-            },
-            endedAt:{
-                lte:end
-            }
+      where: {
+        childId,
+        startedAt: {
+          gte: start,
         },
-
-    })
+        endedAt: {
+          lte: end,
+        },
+      },
+    });
   }
-  async allChildsForSpecficParent(parentId : string){
+  async allChildsForSpecficParent(parentId: string) {
     return await this.prisma.child.findMany({
-        where:{
-            parentId
-        },
-        select:{
-            id:true
-        }
-    })
+      where: {
+        parentId,
+      },
+      select: {
+        id: true,
+      },
+    });
   }
 
-  async getMedications(childId : string){
+  async getMedications(childId: string) {
     return await this.prisma.medication.findMany({
-      where:{
-        id:childId,
-        status:MedicationStatus.ACTIVE
-      }
-    })
+      where: {
+        id: childId,
+        status: MedicationStatus.ACTIVE,
+      },
+    });
   }
- 
 }

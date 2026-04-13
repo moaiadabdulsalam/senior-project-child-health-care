@@ -2,7 +2,6 @@ import { Gender, Role } from '@prisma/client';
 import { IsBoolean, IsDateString, IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreateChildDto {
-
   @IsString()
   @IsNotEmpty()
   fullName: string;
@@ -26,9 +25,6 @@ export class CreateChildDto {
   @IsString()
   @IsNotEmpty()
   loginHandle: string;
-
-  @IsString()
-  photo?: string;
 
   @IsBoolean()
   isActive?: boolean = true;

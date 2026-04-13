@@ -26,8 +26,10 @@ import { SkipThrottle, ThrottlerGuard } from '@nestjs/throttler';
 import { MedicationDoseService } from '../services/medication-dose.service';
 import { UpdateMedicationDoseDto } from '../dtos/updateDose.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { Roles } from 'src/core/decorator/role.decorator';
 
 @UseGuards(JwtAuthGuard, RoleGuard, ThrottlerGuard)
+@Roles(Role.PARENT)
 @Controller('medication')
 export class MedicationController {
   constructor(

@@ -6,6 +6,7 @@ import { AuthRepository } from 'src/modules/auth/repositories/auth.repository';
 import { Role } from '@prisma/client';
 import { Prisma } from '@prisma/client';
 import { UploadService } from 'src/modules/upload/services/upload.service';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class ChildService {
@@ -62,8 +63,9 @@ export class ChildService {
     };
   }
 
-  async getById(id: string) {
-    const child = await this.childRepo.findById(id);
+  async getById(id: string, userId: string) {
+    const parentId = await this.checkUserAndProfileParent(userId);
+    const child = await this.childRepo.getChildForSpecficParent(id, parentId);
     if (!child) {
       throw new NotFoundException('Child Not Found');
     }
@@ -84,7 +86,6 @@ export class ChildService {
         birthDate: dto.birthDate,
         bloodType: dto.birthDate ?? undefined,
         loginHandle: dto.loginHandle,
-        photo: dto.photo,
         isActive: true,
         role: Role.CHILD,
         profileParent: {
@@ -101,9 +102,9 @@ export class ChildService {
     }
   }
 
-  async updateChild(dto: UpdateChildDto, userId: string, id: string , file? : Express.Multer.File) {
-    await this.getById(id);
-    await this.checkUserAndProfileParent(userId);
+  async updateChild(dto: UpdateChildDto, userId: string, id: string, file?: Express.Multer.File) {
+    const parentId = await this.checkUserAndProfileParent(userId);
+    await this.getById(id, parentId);
     let imageDate: { key: string; url: string } | null = null;
     if (file) {
       imageDate = await this.uploadService.uploadImage(file);
@@ -116,7 +117,6 @@ export class ChildService {
         birthDate: dto.birthDate ?? undefined,
         bloodType: dto.birthDate ?? undefined,
         loginHandle: dto.loginHandle ?? undefined,
-        photo: dto.photo ?? undefined,
         ...(imageDate ? { imageKey: imageDate.key, imageUrl: imageDate.url } : {}),
       });
     } catch (e) {
@@ -126,8 +126,8 @@ export class ChildService {
     }
   }
   async deleteChild(userId: string, id: string) {
-    await this.getById(id);
-    await this.checkUserAndProfileParent(userId);
+    const parentId = await this.checkUserAndProfileParent(userId);
+    await this.getById(id, parentId);
     return await this.childRepo.deleteChild(id);
   }
 }

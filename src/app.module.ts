@@ -20,6 +20,8 @@ import { NotificationModule } from './modules/notification/notification.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { PublicLandingModule } from './modules/public-landing/public-landing.module';
 import { UploadModule } from './modules/upload/upload.module';
+import { GameModule } from './modules/game/game.module';
+import { LoginChildModule } from './modules/login-child/login-child.module';
 @Module({
   imports: [
     ScheduleModule.forRoot(),
@@ -49,6 +51,8 @@ import { UploadModule } from './modules/upload/upload.module';
     NotificationModule,
     PublicLandingModule,
     UploadModule,
+    GameModule,
+    LoginChildModule,
   ],
   providers: [
     {

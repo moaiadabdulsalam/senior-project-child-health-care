@@ -17,6 +17,9 @@ export class medicationRepository {
       where,
       take: limit,
       skip,
+      include: {
+        child: true,
+      },
     });
   }
 
@@ -24,6 +27,9 @@ export class medicationRepository {
     return this.prisma.medication.findUnique({
       where: {
         id,
+      },
+      include: {
+        child: true,
       },
     });
   }
@@ -36,6 +42,9 @@ export class medicationRepository {
           ...(data.mdeicineNameArabic ? [{ mdeicineNameArabic: data.mdeicineNameArabic }] : []),
         ],
         status: MedicationStatus.ACTIVE,
+      },
+      include: {
+        child: true,
       },
     });
   }

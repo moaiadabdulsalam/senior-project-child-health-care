@@ -8,9 +8,7 @@ export class ParentsRepository {
 
   async getAllUserParent() {
     return await this.prisma.user.findMany({
-      include: {
-        profileParent: true,
-      },
+      select,
     });
   }
 
@@ -19,16 +17,14 @@ export class ParentsRepository {
       where: {
         parentId,
       },
-      include: {
-        profileParent: true,
-      },
+      select,
     });
   }
 
   async getParent(id: string) {
     return await this.prisma.user.findUnique({
       where: { id },
-      include: { profileParent: true },
+      select,
     });
   }
 
@@ -51,3 +47,25 @@ export class ParentsRepository {
     });
   }
 }
+
+const select = {
+  id: true,
+  email: true,
+  role: true,
+  isActive: true,
+  createdAt: true,
+  updatedAt: true,
+  profileParent: {
+    select: {
+      id: true,
+      fullName: true,
+      fullNameArabic: true,
+      address: true,
+      addressArabic: true,
+      phone: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+  },
+} satisfies Prisma.UserSelect;
+//4/13/2026

@@ -17,7 +17,7 @@ type AppointmentWithRelationChild = Prisma.AppointmentGetPayload<{
 export class DoctorStatisticalRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async revenue(from: Date, to: Date, doctorId: string) {
+  async revenue(from: Date, to: Date, doctorId: string ) {
     return await this.prisma.payment.aggregate({
       _sum: { amount: true },
       where: {
@@ -92,7 +92,6 @@ export class DoctorStatisticalRepository {
     return total.length;
   }
 
-  /** Average age in full years at "now" for distinct children in completed appointments. */
   async averagePatientAgeYears(doctorId: string): Promise<{
     averageYears: number | null;
     patientCount: number;
@@ -128,3 +127,4 @@ export class DoctorStatisticalRepository {
     };
   }
 }
+//4/13/2026

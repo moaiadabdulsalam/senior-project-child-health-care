@@ -12,15 +12,37 @@ export class AppointmentRepository {
       skip,
       take: limit,
       include: {
-        child: true,
+        child: {
+          select: {
+            fullName: true,
+            fullNameArabic: true,
+            gender: true,
+            birthDate: true,
+          },
+        },
         profileDoctor: true,
         profileParent: true,
+      },
+      orderBy: {
+        createdAt: 'desc',
       },
     });
   }
   async getOneAppointment(where: Prisma.AppointmentWhereInput) {
     return await this.prisma.appointment.findFirst({
       where,
+      include: {
+        child: {
+          select: {
+            fullName: true,
+            fullNameArabic: true,
+            gender: true,
+            birthDate: true,
+          },
+        },
+        profileDoctor: true,
+        profileParent: true,
+      },
     });
   }
   async count(where: Prisma.AppointmentWhereInput) {
@@ -35,6 +57,14 @@ export class AppointmentRepository {
         id,
       },
       include: {
+        child: {
+          select: {
+            fullName: true,
+            fullNameArabic: true,
+            gender: true,
+            birthDate: true,
+          },
+        },
         profileDoctor: true,
         profileParent: true,
       },
@@ -44,6 +74,18 @@ export class AppointmentRepository {
   async createAppointment(data: Prisma.AppointmentUncheckedCreateInput) {
     return await this.prisma.appointment.create({
       data,
+      include: {
+        child: {
+          select: {
+            fullName: true,
+            fullNameArabic: true,
+            gender: true,
+            birthDate: true,
+          },
+        },
+        profileDoctor: true,
+        profileParent: true,
+      },
     });
   }
   async updateAppointment(data: Prisma.AppointmentUncheckedUpdateInput, id: string) {
@@ -53,6 +95,14 @@ export class AppointmentRepository {
       },
       data,
       include: {
+        child: {
+          select: {
+            fullName: true,
+            fullNameArabic: true,
+            gender: true,
+            birthDate: true,
+          },
+        },
         profileDoctor: true,
         profileParent: true,
       },
@@ -64,6 +114,14 @@ export class AppointmentRepository {
         id,
       },
       include: {
+        child: {
+          select: {
+            fullName: true,
+            fullNameArabic: true,
+            gender: true,
+            birthDate: true,
+          },
+        },
         profileDoctor: true,
         profileParent: true,
       },
@@ -82,3 +140,4 @@ export class AppointmentRepository {
     });
   }
 }
+//4/13/2026

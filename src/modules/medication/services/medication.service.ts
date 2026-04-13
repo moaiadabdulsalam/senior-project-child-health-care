@@ -105,7 +105,7 @@ export class MedicationService {
 
   async createMedication(dto: CreateMedicationDto, userId: string, file?: Express.Multer.File) {
     const parentId = await this.checkUserAndProfileParent(userId);
-    await this.childService.getById(dto.childId);
+    await this.childService.getById(dto.childId, userId);
     const dataCheck = {
       medinineName: dto.medicineName,
       mdeicineNameArabic: dto.mdeicineNameArabic,
@@ -171,9 +171,13 @@ export class MedicationService {
         throw new ConflictException('Medication already exists');
       }
     }
-    const firstDoseDate =  dto.firstDoseDate ? new Date(dto.firstDoseDate) : medication.firstDoseDate;
-    const firstDoseTime = dto.firstDoseTime ? new Date(dto.firstDoseTime) : medication.firstDoseTime;
-    
+    const firstDoseDate = dto.firstDoseDate
+      ? new Date(dto.firstDoseDate)
+      : medication.firstDoseDate;
+    const firstDoseTime = dto.firstDoseTime
+      ? new Date(dto.firstDoseTime)
+      : medication.firstDoseTime;
+
     const updatedMediction = await this.medicationRepo.updateMedication(
       {
         medicineName: dto.medicineName ?? undefined,

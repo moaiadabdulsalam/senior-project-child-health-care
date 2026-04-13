@@ -55,4 +55,14 @@ export class ChildRepository {
       where,
     });
   }
+
+  async getChildForSpecficParent(childId: string, parentId: string) {
+    return this.prisma.child.findFirst({
+      where: {
+        parentId,
+        id: childId,
+      },
+    });
+  }
 }
+//4/13/2026

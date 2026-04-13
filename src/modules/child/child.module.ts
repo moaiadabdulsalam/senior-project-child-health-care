@@ -9,6 +9,6 @@ import { UploadModule } from '../upload/upload.module';
   imports: [AuthModule , UploadModule],
   providers: [ChildService, ChildRepository , ParseIntPipe],
   controllers: [ChildController],
-  exports:[ChildService]
+  exports:[ChildService , ChildRepository]
 })
 export class ChildModule {}

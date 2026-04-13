@@ -31,6 +31,7 @@ export class DoctorsRepository {
   async getOneByEmail(email: string) {
     return await this.prisma.user.findUnique({
       where: { email },
+      select ,
     });
   }
   async updateDoctorsActivity(id: string, data: Prisma.UserUpdateInput) {
@@ -96,3 +97,4 @@ const select = {
     },
   },
 } satisfies Prisma.UserSelect;
+//4/13/2026
