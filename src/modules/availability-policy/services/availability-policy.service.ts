@@ -3,7 +3,6 @@ import { DoctorStatus, WeekDay } from '@prisma/client';
 import { AuthRepository } from 'src/modules/auth/repositories/auth.repository';
 import { AvailabilityPolicyRepository } from '../repositories/availabilityPolicy.repositories';
 import { CreatePolicyDto } from '../dtos/createPolicy.dto';
-import strict from 'assert/strict';
 import { UpdatePolicyDto } from '../dtos/updatePolicy.dto';
 
 @Injectable()

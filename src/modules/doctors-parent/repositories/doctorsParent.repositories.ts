@@ -50,8 +50,26 @@ const select = {
       clinicName: true,
       clinicNameArabic: true,
       status: true,
+      averageRating : true,
+      reviewCount: true,
       createdAt: true,
       updatedAt: true,
+      review : {
+        where : {
+          comment  : {
+            not : null
+          }
+        },
+        select :{
+          id: true,
+          comment : true,
+          createdAt: true
+        },
+        orderBy : {
+          createdAt: 'desc'
+        },
+        take : 3
+      }
     },
   },
 } satisfies Prisma.UserSelect;

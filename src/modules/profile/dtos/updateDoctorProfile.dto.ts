@@ -25,7 +25,5 @@ export class UpdateDoctorProfileDto {
   clinicName?: string;
   @IsOptional()
   clinicNameArabic?: string;
-  @IsOptional()
-  @IsEnum(DoctorStatus)
-  status?: DoctorStatus;
+ 
 }

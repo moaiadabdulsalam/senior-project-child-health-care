@@ -12,7 +12,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { SkipThrottle, ThrottlerGuard } from '@nestjs/throttler';
+import { SkipThrottle, Throttle, ThrottlerGuard } from '@nestjs/throttler';
 import { AppointmentStatus, Role, SlotFilterType } from '@prisma/client';
 import { Roles } from 'src/core/decorator/role.decorator';
 import { RoleGuard } from 'src/core/guard/role.guard';
@@ -111,7 +111,7 @@ export class AppointmentController {
   getSlotPerDay(
     @Req() req,
     @Query('date', new DefaultValuePipe(new Date()), ParseDatePipe) date?: Date,
-    @Query('type') type? : SlotFilterType
+    @Query('type') type?: SlotFilterType,
   ) {
     const { userId } = req.user;
     return this.appointmentService.getSlotPerDay(userId, date, type);
@@ -122,9 +122,21 @@ export class AppointmentController {
   getSlotPerMonth(
     @Req() req,
     @Query('date', new DefaultValuePipe(new Date()), ParseDatePipe) date?: Date,
-    @Query('type') type? : SlotFilterType
+    @Query('type') type?: SlotFilterType,
   ) {
     const { userId } = req.user;
-    return this.appointmentService.getSlotPerMonth(userId, date,type);
+    return this.appointmentService.getSlotPerMonth(userId, date, type);
+  }
+
+  @Throttle({default : {limit : 3 ,ttl : 50_000}})
+  @Roles(Role.DOCTOR)
+  @Patch('/:id')
+  AppointmentStatus(
+    @Req() req,
+    @Body('status') status: AppointmentStatus,
+    @Param('id') id: string,
+  ) {
+    const { userId } = req.user;
+    return this.appointmentService.toggleAppointmentStatus(userId, status,id);
   }
 }

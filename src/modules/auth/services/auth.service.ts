@@ -137,6 +137,7 @@ export class AuthService {
           email: dto.email,
           passwordHash: hash,
           role: dto.role,
+          isProfileCompleted: true,
         },
         tx,
       );
@@ -184,10 +185,16 @@ export class AuthService {
     if (files.image?.length) {
       imageDate = await this.uploadService.uploadImage(files.image[0]);
     }
+    if (files.image?.[0] && files.image[0].size > 5_000_000) {
+      throw new BadRequestException('Image too large');
+    }
 
     let certificateDate: { key: string; url: string } | null = null;
     if (files.certificates?.length) {
       certificateDate = await this.uploadService.uploadImage(files.certificates[0]);
+    }
+    if (files.certificates?.[0] && files.certificates[0].size > 5_000_000) {
+      throw new BadRequestException('Image too large');
     }
 
     const hash = await bcrypt.hash(dto.password, 10);
@@ -199,6 +206,7 @@ export class AuthService {
           passwordHash: hash,
           role: dto.role,
           isActive: false,
+          isProfileCompleted: true,
         },
         tx,
       );
@@ -206,15 +214,15 @@ export class AuthService {
         {
           speciality: dto.speciality,
           specialityArabic: dto.specialityArabic ?? undefined,
-          clinicAddress: dto.clinicAddress,
-          clinicNameArabic: dto.clinicAddressArabic ?? undefined,
-          clinicPhone: dto.clinicPhone ?? '', //بعدل تعديلها في الداتا بيز
-          clinicName: dto.clinicName,
-          clinicAddressArabic: dto.clinicNameArabic ?? undefined,
+          clinicAddress: dto.clinicAddress ?? undefined,
+          clinicNameArabic: dto.clinicNameArabic ?? undefined,
+          clinicPhone: dto.clinicPhone ?? undefined,
+          clinicName: dto.clinicName ?? undefined,
+          clinicAddressArabic: dto.clinicAddressArabic ?? undefined,
           fullName: dto.fullName,
           fullNameArabic: dto.fullNameArabic ?? undefined,
           status: DoctorStatus.VERIFYING,
-          description: dto.description,
+          description: dto.description ?? undefined,
           phone: dto.phone,
           user: {
             connect: { id: user.id },
@@ -255,7 +263,11 @@ export class AuthService {
 
     await this.userRepo.updateUserRefreshToken(user.id, hashedRefreshToken);
 
-    return { accessToken, refreshToken, user: { email: user.email, role: user.role } };
+    return {
+      accessToken,
+      refreshToken,
+      user: { email: user.email, role: user.role, isProfileCompleted: user.isProfileCompleted },
+    };
   }
 
   async sendOtp(dto: SendEmailDto) {

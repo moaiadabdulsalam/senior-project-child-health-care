@@ -20,15 +20,17 @@ import { AvailabilityPolicyRepository } from 'src/modules/availability-policy/re
 import { ExceptionRepository } from 'src/modules/exception/repositories/exception.repositories';
 import { stat } from 'node:fs';
 import { mpJsDayToWeek } from 'src/common/utils/date.util';
+import { ReviewRepository } from 'src/modules/review/repositories/review.repositories.dto';
 
 @Injectable()
 export class AppointmentService {
   constructor(
     private readonly AppointmentRepo: AppointmentRepository,
-    private userRepo: AuthRepository,
-    private notificaiton: NotificationService,
+    private readonly userRepo: AuthRepository,
+    private readonly notificaiton: NotificationService,
     private readonly policy: AvailabilityPolicyRepository,
     private readonly excpetionRepo: ExceptionRepository,
+    private readonly reviewRepo : ReviewRepository
   ) {}
 
   private async checkUserAndProfileParent(userId: string) {
@@ -416,13 +418,13 @@ export class AppointmentService {
     while (begin < end) {
       let status: SlotFilterType = SlotFilterType.AVAILABLE;
       let breakCheck: Exception | boolean | ExceptionType = false;
-       const slotEnd = new Date(begin);
+      const slotEnd = new Date(begin);
       slotEnd.setMinutes(slotEnd.getMinutes() + slot);
       if (breakStart && breakEnd && slotEnd > breakStart && begin < breakEnd) {
         breakCheck = true;
         status = SlotFilterType.BREAK;
       }
-      
+
       const exception = await this.excpetionRepo.getException({
         startTime: {
           lt: slotEnd,
@@ -431,10 +433,10 @@ export class AppointmentService {
           gt: begin,
         },
       });
-      const weekday = mpJsDayToWeek(begin.getDay())
-      const isOff = policy.weeklyOffDays.includes(weekday)
+      const weekday = mpJsDayToWeek(begin.getDay());
+      const isOff = policy.weeklyOffDays.includes(weekday);
 
-      if(isOff && !exception){
+      if (isOff && !exception) {
         breakCheck = ExceptionType.DAY_OFF;
         status = SlotFilterType.BREAK;
       }
@@ -442,7 +444,7 @@ export class AppointmentService {
         breakCheck = exception;
         status = SlotFilterType.BREAK;
       }
-    
+
       const where: Prisma.AppointmentWhereInput = {
         date: {
           gt: begin,
@@ -485,39 +487,70 @@ export class AppointmentService {
       0,
     ).getDate();
 
-    const result: { date: Date; break: boolean | Exception | ExceptionType; book: Appointment | null ,status : SlotFilterType }[][] = [];
+    const result: {
+      date: Date;
+      break: boolean | Exception | ExceptionType;
+      book: Appointment | null;
+      status: SlotFilterType;
+    }[][] = [];
     for (let i = 1; i <= numberOfDays; i++) {
-      
       const day = new Date(availiableDate.getFullYear(), availiableDate.getMonth(), i);
-      const startDayTime = new Date(day)
-      startDayTime.setHours(0,0,0,0)
-      const endDayTime = new Date(day)
-      endDayTime.setHours(23,59,59,1000)
+      const startDayTime = new Date(day);
+      startDayTime.setHours(0, 0, 0, 0);
+      const endDayTime = new Date(day);
+      endDayTime.setHours(23, 59, 59, 1000);
       const available = await this.excpetionRepo.getException({
-        startTime : {
-          gte : startDayTime
+        startTime: {
+          gte: startDayTime,
         },
         endTime: {
-          lte : endDayTime
+          lte: endDayTime,
         },
-        type : ExceptionType.CUSTOM_AVAILABLE_HOURS
-      })
-      const weekday = mpJsDayToWeek(day.getDay())
-      const isOff = policy.weeklyOffDays.includes(weekday)
-      if(isOff && !available){
+        type: ExceptionType.CUSTOM_AVAILABLE_HOURS,
+      });
+      const weekday = mpJsDayToWeek(day.getDay());
+      const isOff = policy.weeklyOffDays.includes(weekday);
+      if (isOff && !available) {
         result.push([
           {
             date: day,
-            break : true,
-            book : null,
-            status  : SlotFilterType.BREAK
-          }  
-        ])
-        continue
+            break: true,
+            book: null,
+            status: SlotFilterType.BREAK,
+          },
+        ]);
+        continue;
       }
       const slotAllDay = await this.getSlotPerDay(userId, day, type);
       result.push(slotAllDay);
     }
     return result;
+  }
+
+  async toggleAppointmentStatus(userId: string, status: AppointmentStatus, id: string) {
+    const doctorId = await this.checkUserAndProfileDoctor(userId);
+    const appointment = await this.getOne(id);
+    if (appointment.doctorId !== doctorId) {
+      throw new BadRequestException('this appointment not belong to this doctor');
+    }
+    if (status !== AppointmentStatus.COMPLETED && status !== AppointmentStatus.CONFIRMED) {
+      throw new BadRequestException('Only CONFIRMED or COMPLETED can you make it');
+    }
+    const review = await this.reviewRepo.getReviewByAppointment(id)
+    if (status === AppointmentStatus.COMPLETED && !review) {
+      await this.notificaiton.create({
+        title: 'appointment completed',
+        type: NotificationType.APPOINTMENT_COMPLETED,
+        message: 'Your appointment has been completed. Please take a moment to rate your doctor.',
+        senderId: appointment.profileDoctor.userId,
+        userId: appointment.profileParent.userId,
+        data: {
+          appointmentId: appointment.id,
+          doctorId: appointment.doctorId,
+          parentId: appointment.parentId,
+        },
+      });
+    }
+    return await this.AppointmentRepo.updateAppointment({ status }, id);
   }
 }

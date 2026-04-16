@@ -32,6 +32,7 @@ export class AuthRepository {
         createdAt: true,
         updatedAt: true,
         isActive: true,
+        isProfileCompleted :true
       },
     });
   }
@@ -41,6 +42,7 @@ export class AuthRepository {
       where: {
         email,
         isActive: true,
+        isProfileCompleted :true
       },
       include: {
         profileDoctory: true,
@@ -57,6 +59,7 @@ export class AuthRepository {
       where: {
         id: userId,
         isActive: true,
+        isProfileCompleted :true
       },
       include: {
         profileDoctory: true,
@@ -78,5 +81,14 @@ export class AuthRepository {
         hashedRefreshToken: newRefreshToken,
       },
     });
+  }
+
+  async updateUserInfo(id: string , data : Prisma.UserUpdateInput){
+    return this.prisma.user.update({
+      where : {
+        id
+      },
+      data
+    })
   }
 }

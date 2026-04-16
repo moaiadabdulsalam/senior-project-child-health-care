@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Appointment, AppointmentStatus, Gender, Prisma } from '@prisma/client';
+import { Appointment, AppointmentStatus, Gender, PaymentStatus, Prisma } from '@prisma/client';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 
 type AppointmentWithRelation = Prisma.AppointmentGetPayload<{
@@ -17,17 +17,34 @@ type AppointmentWithRelationChild = Prisma.AppointmentGetPayload<{
 export class DoctorStatisticalRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async revenue(from: Date, to: Date, doctorId: string ) {
+  async revenuePerDate(from: Date, to: Date, doctorId: string ) {
     return await this.prisma.payment.aggregate({
       _sum: { amount: true },
       where: {
         doctorId,
+        status : PaymentStatus.SUCCESS,
         paidAt: {
           gte: from,
           lte: to,
         },
       },
     });
+  }
+  async findFirstRevenueDate(doctorId: string) {
+    const first = await this.prisma.payment.findFirst({
+      where: {
+        doctorId,
+        status: PaymentStatus.SUCCESS,
+      },
+      orderBy: {
+        createdAt: 'asc',
+      },
+      select: {
+        createdAt: true,
+      },
+    });
+  
+    return first?.createdAt ?? null;
   }
 
   async todayAppointments(doctorId: string): Promise<Appointment[]> {

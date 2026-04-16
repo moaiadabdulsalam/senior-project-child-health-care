@@ -92,6 +92,8 @@ const select = {
       status: true,
       certificateKey:true,
       certificateUrl:true,
+      averageRating : true,
+      reviewCount: true,
       createdAt: true,
       updatedAt: true,
     },

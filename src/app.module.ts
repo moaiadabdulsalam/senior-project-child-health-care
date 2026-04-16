@@ -22,6 +22,7 @@ import { PublicLandingModule } from './modules/public-landing/public-landing.mod
 import { UploadModule } from './modules/upload/upload.module';
 import { GameModule } from './modules/game/game.module';
 import { LoginChildModule } from './modules/login-child/login-child.module';
+import { ReviewModule } from './modules/review/review.module';
 @Module({
   imports: [
     ScheduleModule.forRoot(),
@@ -53,6 +54,7 @@ import { LoginChildModule } from './modules/login-child/login-child.module';
     UploadModule,
     GameModule,
     LoginChildModule,
+    ReviewModule,
   ],
   providers: [
     {

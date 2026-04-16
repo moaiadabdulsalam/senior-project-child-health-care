@@ -7,9 +7,10 @@ import { GameRepository } from './repositories/game.repository';
 import { GameSessionRepository } from './repositories/gameSession.repository';
 import { LoginChildModule } from '../login-child/login-child.module';
 import { AuthModule } from '../auth/auth.module';
+import { ChildModule } from '../child/child.module';
 
 @Module({
-  imports : [AuthModule,LoginChildModule],
+  imports : [AuthModule,LoginChildModule , ChildModule],
   providers: [GameService, GameSessionService, GameRepository, GameSessionRepository],
   controllers: [GameController, GameSessionController],
 })

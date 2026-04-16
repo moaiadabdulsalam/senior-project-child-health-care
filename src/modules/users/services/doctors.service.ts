@@ -33,7 +33,7 @@ export class DoctorsService {
     }
 
     const passwordHash: string = await bcrypt.hash(dto.password, 10);
-    const data = { email: dto.email, passwordHash, role: Role.DOCTOR };
+    const data = { email: dto.email, passwordHash, role: Role.DOCTOR , isActive :true };
     return await this.doctorsRep.createUserDoctor(data);
   }
   async updateDoctorsActivity(id: string, dto: UpdateActivityDto) {

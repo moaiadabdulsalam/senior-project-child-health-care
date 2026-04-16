@@ -1,10 +1,11 @@
-import { Controller, Get, Query, Req, UseGuards } from '@nestjs/common';
+import { Controller, DefaultValuePipe, Get, Query, Req, UseGuards } from '@nestjs/common';
 import { DoctorStatisticalService } from '../services/doctorStatistical.service';
 import { JwtAuthGuard } from 'src/modules/auth/guard/jwt.guard';
 import { RoleGuard } from 'src/core/guard/role.guard';
 import { Roles } from 'src/core/decorator/role.decorator';
-import { Role } from '@prisma/client';
+import { Role, TypeOfRevenue } from '@prisma/client';
 import { AdminService } from '../services/admin.service';
+import { ParseDatePipe } from 'src/core/pipe/parse-date.pipe';
 
 @UseGuards(JwtAuthGuard, RoleGuard)
 @Roles(Role.DOCTOR)
@@ -15,9 +16,13 @@ export class DoctorController {
     private readonly adminService: AdminService,
   ) {}
   @Get('revenue')
-  revenue(@Req() req, @Query('from') from?: string, @Query('to') to?: string) {
+  revenue(
+    @Req() req,
+    @Query('date') date?: Date,
+    @Query('type') type?: TypeOfRevenue,
+  ) {
     const { userId } = req.user;
-    return this.doctorService.revenue(userId, from, to);
+    return this.doctorService.revenues(userId, date, type);
   }
   @Get('/todayAppointments')
   todayAppointments(@Req() req) {

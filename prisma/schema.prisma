@@ -98,6 +98,7 @@ enum NotificationType {
   APPOINTMENT_DELETED
   APPOINTMENT_CONFIRMED
   APPOINTMENT_CANCELLED
+  APPOINTMENT_COMPLETED
   CHILD_LOGIN
   MEDICATION_REMINDER
   DOCTOR_IN_EXCEPTION
@@ -133,11 +134,13 @@ enum DeviceLinkStatus {
   EXPIRED
   CANCELED
 }
+
 enum TypeOfRevenue {
   YEARLY
   MONTHLY
   WEEKLY
 }
+
 /**
  * ----***** MODELS *****----
  */
@@ -151,6 +154,7 @@ model User {
   hashedRefreshToken String?
   profileParent      ProfileParent?
   profileDoctory     ProfileDoctor?
+  isProfileCompleted Boolean        @default(false)
 
   receivedNotifications Notification[] @relation("NotificationRecipient")
   sentNotifications     Notification[] @relation("NotificationSender")
@@ -174,14 +178,16 @@ model ProfileParent {
   imageUrl       String?
   imageKey       String?
 
-  child               Child[]
+  child  Child[]
+  review Review[]
+
   childAccessSessions ChildAccessSession[] @relation("ParentChildAccessSessions")
   deviceLinkRequest   DeviceLinkRequest[]
-  appointment Appointment[]
-  payment     Payment[]
-  medication  Medication[]
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  appointment         Appointment[]
+  payment             Payment[]
+  medication          Medication[]
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
 
   @@index([userId])
 }
@@ -208,6 +214,10 @@ model ProfileDoctor {
   certificateKey      String?
   status              DoctorStatus
 
+  averageRating Float @default(0)
+  reviewCount   Int   @default(0)
+
+  review             Review[]
   exception          Exception[]
   appointment        Appointment[]
   payment            Payment[]
@@ -216,6 +226,27 @@ model ProfileDoctor {
   updatedAt          DateTime            @updatedAt
 
   @@index([userId, speciality])
+}
+
+model Review {
+  id String @id @default(uuid())
+
+  rating  Int
+  comment String?
+
+  doctorId String
+  doctor   ProfileDoctor @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+
+  parentId String
+  parent   ProfileParent @relation(fields: [parentId], references: [id], onDelete: Cascade)
+
+  appointmentId String      @unique
+  appointment   Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([doctorId])
+  @@index([parentId])
 }
 
 model Child {
@@ -237,7 +268,7 @@ model Child {
   gameSessions       GameSession[]
   appointment        Appointment[]
   medication         Medication[]
-  deviceLinkRequest   DeviceLinkRequest[]
+  deviceLinkRequest  DeviceLinkRequest[]
   childAccessSession ChildAccessSession[]
   createdAt          DateTime             @default(now())
   updatedAt          DateTime             @updatedAt
@@ -271,6 +302,7 @@ model ChildAccessSession {
   @@index([parentId, status])
   @@index([expiresAt])
 }
+
 model DeviceLinkRequest {
   id              String           @id @default(cuid())
   parentId        String
@@ -281,16 +313,15 @@ model DeviceLinkRequest {
   usedAt          DateTime?
   status          DeviceLinkStatus @default(PENDING)
 
-  parent          ProfileParent             @relation(fields: [parentId], references: [id], onDelete: Cascade)
-  child           Child            @relation(fields: [childId], references: [id], onDelete: Cascade)
+  parent ProfileParent @relation(fields: [parentId], references: [id], onDelete: Cascade)
+  child  Child         @relation(fields: [childId], references: [id], onDelete: Cascade)
 
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([childId, status])
   @@index([expiresAt])
 }
-
 
 model AvailabilityPolicy {
   id            String        @id @default(uuid())
@@ -395,6 +426,8 @@ model Appointment {
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @updatedAt
 
+  review Review?
+
   @@index([date, reminderSent])
   @@index([doctorId, childId, parentId])
 }
@@ -474,7 +507,7 @@ model GameSession {
   childAccessSessionId String
   childAccessSession   ChildAccessSession @relation(fields: [childAccessSessionId], references: [id], onDelete: Cascade)
   startedAt            DateTime           @default(now())
-  endedAt              DateTime
+  endedAt              DateTime?
   durationSeconds      Int?
   score                Int?
   levelReached         Int?

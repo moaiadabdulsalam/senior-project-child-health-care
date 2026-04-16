@@ -9,6 +9,7 @@ import {
   Req,
   Res,
   UploadedFile,
+  UploadedFiles,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
@@ -38,23 +39,18 @@ export class AuthController {
   @UseInterceptors(
     FileFieldsInterceptor([
       { name: 'image', maxCount: 1 },
-      { name: 'certificate', maxCount: 1 },
+      { name: 'certificates', maxCount: 1 },
     ]),
   )
   registerDoctor(
     @Body() dto: RegisterDoctorDto,
-    @UploadedFile(
-      new ParseFilePipe({
-        fileIsRequired: false,
-        validators: [new MaxFileSizeValidator({ maxSize: 5000000 })],
-      }),
-    )
+    @UploadedFiles()
     files: {
       image?: Express.Multer.File[];
       certificates?: Express.Multer.File[];
     },
   ) {
-    return this.authService.registerDoctor(dto,files);
+    return this.authService.registerDoctor(dto, files);
   }
 
   @Post('/register-parent')

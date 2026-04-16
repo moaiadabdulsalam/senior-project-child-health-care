@@ -7,6 +7,7 @@ import { DoctorsParentRepository } from './repositories/doctorsParent.repositori
 @Module({
   imports:[AuthModule],
   providers: [DoctorsParentService, DoctorsParentRepository ,ParseIntPipe],
-  controllers: [DoctorsParentController]
+  controllers: [DoctorsParentController],
+  exports : [DoctorsParentRepository]
 })
 export class DoctorsParentModule {}
