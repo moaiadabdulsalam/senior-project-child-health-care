@@ -84,7 +84,7 @@ export class ChildService {
         fullNameArabic: dto.fullNameArabic ?? undefined,
         gender: dto.gender,
         birthDate: dto.birthDate,
-        bloodType: dto.birthDate ?? undefined,
+        bloodType: dto.bloodType ?? undefined,
         loginHandle: dto.loginHandle,
         isActive: true,
         role: Role.CHILD,
@@ -97,14 +97,14 @@ export class ChildService {
       });
     } catch (e) {
       if (e.code === 'P2002') {
-        throw new BadRequestException('full name is already exit');
+        throw new BadRequestException('Child full name already exists');
       }
     }
   }
 
   async updateChild(dto: UpdateChildDto, userId: string, id: string, file?: Express.Multer.File) {
     const parentId = await this.checkUserAndProfileParent(userId);
-    await this.getById(id, parentId);
+    await this.getById(id, userId);
     let imageDate: { key: string; url: string } | null = null;
     if (file) {
       imageDate = await this.uploadService.uploadImage(file);
@@ -115,7 +115,7 @@ export class ChildService {
         fullNameArabic: dto.fullNameArabic ?? undefined,
         gender: dto.gender ?? undefined,
         birthDate: dto.birthDate ?? undefined,
-        bloodType: dto.birthDate ?? undefined,
+        bloodType: dto.bloodType ?? undefined,
         loginHandle: dto.loginHandle ?? undefined,
         ...(imageDate ? { imageKey: imageDate.key, imageUrl: imageDate.url } : {}),
       });
@@ -127,7 +127,7 @@ export class ChildService {
   }
   async deleteChild(userId: string, id: string) {
     const parentId = await this.checkUserAndProfileParent(userId);
-    await this.getById(id, parentId);
+    await this.getById(id, userId);
     return await this.childRepo.deleteChild(id);
   }
 }
