@@ -17,7 +17,14 @@ export class medicationRepository {
       take: limit,
       skip,
       include: {
-        child: true,
+        child: {
+          select: {
+            fullName: true,
+            fullNameArabic: true,
+            gender: true,
+            birthDate: true,
+          },
+        },
       },
     });
   }
@@ -28,7 +35,14 @@ export class medicationRepository {
         id,
       },
       include: {
-        child: true,
+        child: {
+          select: {
+            fullName: true,
+            fullNameArabic: true,
+            gender: true,
+            birthDate: true,
+          },
+        },
       },
     });
   }
@@ -43,7 +57,14 @@ export class medicationRepository {
         status: MedicationStatus.ACTIVE,
       },
       include: {
-        child: true,
+        child: {
+          select: {
+            fullName: true,
+            fullNameArabic: true,
+            gender: true,
+            birthDate: true,
+          },
+        },
       },
     });
   }

@@ -17,7 +17,14 @@ export class MedicationDosesRepository {
       include: {
         medication: {
           include: {
-            child: true,
+            child: {
+              select: {
+                fullName: true,
+                fullNameArabic: true,
+                gender: true,
+                birthDate: true,
+              },
+            },
             profileParent: true,
           },
         },
