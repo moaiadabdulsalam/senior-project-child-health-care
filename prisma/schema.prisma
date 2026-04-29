@@ -6,7 +6,7 @@
 
 generator client {
   provider = "prisma-client-js"
-}
+} 
 
 datasource db {
   provider = "postgresql"
@@ -141,6 +141,34 @@ enum TypeOfRevenue {
   WEEKLY
 }
 
+enum ConversationRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum ConversationStatus {
+  OPEN
+  CLOSED
+  ARCHIVED
+  BLOCKED
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  FILE
+  VOICE
+}
+
+enum AttachmentType {
+  IMAGE
+  PDF
+  REPORT
+  VOICE
+  OTHER
+}
+
 /**
  * ----***** MODELS *****----
  */
@@ -158,6 +186,13 @@ model User {
 
   receivedNotifications Notification[] @relation("NotificationRecipient")
   sentNotifications     Notification[] @relation("NotificationSender")
+
+  parentConversationRequests ConversationRequest[]   @relation("ParentConversationRequests")
+  doctorConversationRequests ConversationRequest[]   @relation("DoctorConversationRequests")
+  parentConversations        Conversation[]          @relation("ParentConversations")
+  doctorConversations        Conversation[]          @relation("DoctorConversations")
+  messages                   Message[]               @relation("SentMessages")
+  conversationReadStates     ConversationReadState[] @relation("ConversationReadStates")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -516,4 +551,124 @@ model GameSession {
   updatedAt            DateTime           @updatedAt
 
   @@index([childId, gameId])
+}
+
+model ConversationRequest {
+  id String @id @default(uuid())
+
+  parentId String
+  parent   User   @relation("ParentConversationRequests", fields: [parentId], references: [id], onDelete: Cascade)
+
+  doctorId String
+  doctor   User   @relation("DoctorConversationRequests", fields: [doctorId], references: [id], onDelete: Cascade)
+
+  conversationId String?       @unique
+  conversation   Conversation? @relation("RequestToConversation", fields: [conversationId], references: [id])
+
+  initialMessage String
+  status         ConversationRequestStatus @default(PENDING)
+
+  respondedAt    DateTime?
+  rejectedReason String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([parentId])
+  @@index([doctorId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model Conversation {
+  id       String @id @default(uuid())
+  parentId String
+  parent   User   @relation("ParentConversations", fields: [parentId], references: [id], onDelete: Cascade)
+
+  doctorId String
+  doctor   User   @relation("DoctorConversations", fields: [doctorId], references: [id], onDelete: Cascade)
+
+  status ConversationStatus @default(OPEN)
+
+  lastMessageAt DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  request    ConversationRequest?    @relation("RequestToConversation")
+  messages   Message[]
+  readStates ConversationReadState[]
+
+  @@unique([parentId, doctorId])
+  @@index([parentId])
+  @@index([doctorId])
+  @@index([status])
+  @@index([lastMessageAt])
+}
+
+model Message {
+  id             String       @id @default(uuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  senderId String
+  sender   User   @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+
+  type MessageType @default(TEXT)
+
+  text      String?
+  isEdited  Boolean   @default(false)
+  editedAt  DateTime?
+  deletedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  attachments MessageAttachment[]
+  readStates  ConversationReadState[] @relation("LastReadMessage")
+
+  @@index([conversationId, createdAt])
+  @@index([senderId])
+  @@index([type])
+  @@index([deletedAt])
+}
+
+model MessageAttachment {
+  id String @id @default(uuid())
+
+  messageId String
+  message   Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  fileName       String
+  mimeType       String
+  fileSize       Int
+  storageKey     String
+  url            String
+  attachmentType AttachmentType @default(IMAGE)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([messageId])
+  @@index([attachmentType])
+}
+
+model ConversationReadState {
+  id             String       @id @default(uuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation("ConversationReadStates", fields: [userId], references: [id], onDelete: Cascade)
+
+  lastReadMessageId String?
+  lastReadMessage   Message? @relation("LastReadMessage", fields: [lastReadMessageId], references: [id], onDelete: SetNull)
+
+  lastReadAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([conversationId, userId])
+  @@index([userId])
+  @@index([lastReadMessageId])
 }

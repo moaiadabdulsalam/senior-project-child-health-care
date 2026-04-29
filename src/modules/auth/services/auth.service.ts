@@ -247,6 +247,7 @@ export class AuthService {
   }
 
   async login(dto: LoginDto) {
+
     const user = await this.userRepo.findUserByEmail(dto.email);
     if (!user) {
       throw new BadRequestException("email or password doesn't exist");

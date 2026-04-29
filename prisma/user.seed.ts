@@ -1,14 +1,9 @@
 import { PrismaPg } from '@prisma/adapter-pg';
 import {
   AppointmentStatus,
-  Currency,
   DoctorStatus,
   ExceptionType,
-  GameSessionStatus,
   Gender,
-  MedicineUnit,
-  MedicationStatus,
-  PaymentStatus,
   PrismaClient,
   Role,
   WeekDay,
@@ -39,12 +34,16 @@ async function main() {
       passwordHash,
       role: Role.PARENT,
       isActive: true,
+      isProfileCompleted :true
+
     },
     create: {
       email: 'parent@gmail.com',
       passwordHash,
       role: Role.PARENT,
       isActive: true,
+      isProfileCompleted :true
+
     },
   });
 
@@ -54,12 +53,15 @@ async function main() {
       passwordHash,
       role: Role.DOCTOR,
       isActive: true,
+      isProfileCompleted :true
+
     },
     create: {
       email: 'doctor@gmail.com',
       passwordHash,
       role: Role.DOCTOR,
       isActive: true,
+      isProfileCompleted :true
     },
   });
 
@@ -69,11 +71,14 @@ async function main() {
       passwordHash,
       role: Role.ADMIN,
       isActive: true,
+      isProfileCompleted :true
+
     },
     create: {
       email: 'admin@gmail.com',
       passwordHash,
       role: Role.ADMIN,
+      isProfileCompleted :true,
       isActive: true,
     },
   });
@@ -279,9 +284,7 @@ async function main() {
     },
   });
 
- 
-
-
+  console.log(`parent created successfully ${parentUser} and profile ${parentProfile}`);
 }
 
 main()
