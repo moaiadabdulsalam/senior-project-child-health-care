@@ -1,18 +1,31 @@
-import { Controller, Get, Param, Patch, Req, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  DefaultValuePipe,
+  Get,
+  Param,
+  Patch,
+  Query,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { ConversationService } from '../services/conversation.service';
 import { JwtAuthGuard } from 'src/modules/auth/guard/jwt.guard';
-import { Role } from '@prisma/client';
+import { ConversationStatus, Role } from '@prisma/client';
 import { Roles } from 'src/core/decorator/role.decorator';
 import { RoleGuard } from 'src/core/guard/role.guard';
 
-@UseGuards(JwtAuthGuard , RoleGuard)
-@Roles(Role.PARENT , Role.DOCTOR)
+@UseGuards(JwtAuthGuard, RoleGuard)
+@Roles(Role.PARENT, Role.DOCTOR)
 @Controller('chat/conversations')
 export class ConversationController {
   constructor(private readonly conversationService: ConversationService) {}
 
-  getMyConversations(@Req() req) {
-    return this.conversationService.getMyConversations(req.user.userId);
+  @Get()
+  getMyConversations(
+    @Req() req,
+    @Query('status', new DefaultValuePipe(ConversationStatus.OPEN)) status: ConversationStatus,
+  ) {
+    return this.conversationService.getMyConversations(req.user.userId, status);
   }
 
   @Patch(':id/close')

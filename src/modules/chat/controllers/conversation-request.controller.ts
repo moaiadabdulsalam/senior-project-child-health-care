@@ -8,7 +8,6 @@ import { Roles } from 'src/core/decorator/role.decorator';
 import { Role } from '@prisma/client';
 
 @UseGuards(JwtAuthGuard , RoleGuard)
-
 @Controller('chat/requests')
 export class ConversationRequestController {
   constructor(

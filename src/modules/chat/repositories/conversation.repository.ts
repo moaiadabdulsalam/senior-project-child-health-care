@@ -28,9 +28,10 @@ export class ConversationRepository implements IConversationRepository {
     });
   }
 
-  findMyConversations(userId: string) {
+  findMyConversations(userId: string , status : ConversationStatus) {
     return this.prisma.conversation.findMany({
       where: {
+        status,
         OR: [{ parentId: userId }, { doctorId: userId }],
       },
       orderBy: {

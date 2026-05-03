@@ -14,7 +14,7 @@ export interface IConversationRepository {
     doctorId: string,
   ): Promise<Conversation | null>;
 
-  findMyConversations(userId: string): Promise<Conversation[]>;
+  findMyConversations(userId: string, status: ConversationStatus): Promise<Conversation[]>;
 
   updateStatus(id: string, status: ConversationStatus): Promise<Conversation>;
 

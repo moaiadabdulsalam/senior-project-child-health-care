@@ -13,8 +13,8 @@ export class ConversationService {
     private readonly accessValidator: ConversationAccessValidator,
   ) {}
 
-  getMyConversations(userId: string) {
-    return this.conversationRepository.findMyConversations(userId);
+  getMyConversations(userId: string, status: ConversationStatus) {
+    return this.conversationRepository.findMyConversations(userId, status);
   }
 
   async close(conversationId: string, userId: string) {
