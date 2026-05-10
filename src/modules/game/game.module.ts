@@ -10,7 +10,7 @@ import { AuthModule } from '../auth/auth.module';
 import { ChildModule } from '../child/child.module';
 
 @Module({
-  imports : [AuthModule,LoginChildModule , ChildModule],
+  imports: [AuthModule, LoginChildModule, ChildModule],
   providers: [GameService, GameSessionService, GameRepository, GameSessionRepository],
   controllers: [GameController, GameSessionController],
 })

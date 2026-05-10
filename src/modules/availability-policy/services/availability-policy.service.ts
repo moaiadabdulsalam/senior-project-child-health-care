@@ -15,7 +15,7 @@ export class AvailabilityPolicyService {
   private async checkUserAndProfileDoctor(userId: string) {
     const user = await this.userRepo.findUserById(userId);
     if (!user) {
-      throw new NotFoundException("user not found");
+      throw new NotFoundException('user not found');
     }
     const doctorProfile = user.profileDoctory;
     if (!doctorProfile || doctorProfile.status !== DoctorStatus.CONFIRMING) {
@@ -72,5 +72,4 @@ export class AvailabilityPolicyService {
 
     return policy;
   }
-
 }

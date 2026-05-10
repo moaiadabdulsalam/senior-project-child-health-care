@@ -30,7 +30,7 @@ export class AppointmentService {
     private readonly notificaiton: NotificationService,
     private readonly policy: AvailabilityPolicyRepository,
     private readonly excpetionRepo: ExceptionRepository,
-    private readonly reviewRepo : ReviewRepository
+    private readonly reviewRepo: ReviewRepository,
   ) {}
 
   private async checkUserAndProfileParent(userId: string) {
@@ -371,13 +371,13 @@ export class AppointmentService {
       throw new NotFoundException('policy require');
     }
 
-    let beginWork = policy.startWork;
-    let endWork = policy.endWork;
-    let slot = policy.slot;
+    const beginWork = policy.startWork;
+    const endWork = policy.endWork;
+    const slot = policy.slot;
 
-    let availiableDate = date ?? new Date();
-    let breakEnd: Date = new Date(availiableDate);
-    let breakStart: Date = new Date(availiableDate);
+    const availiableDate = date ?? new Date();
+    const breakEnd: Date = new Date(availiableDate);
+    const breakStart: Date = new Date(availiableDate);
     if (policy.breakEnd && policy.breakStart) {
       breakStart.setHours(
         policy.breakStart.getHours(),
@@ -393,14 +393,14 @@ export class AppointmentService {
         policy.breakEnd.getMilliseconds(),
       );
     }
-    let begin = new Date(availiableDate);
+    const begin = new Date(availiableDate);
     begin.setHours(
       beginWork.getHours(),
       beginWork.getMinutes(),
       beginWork.getSeconds(),
       beginWork.getMilliseconds(),
     );
-    let end = new Date(availiableDate);
+    const end = new Date(availiableDate);
     end.setHours(
       endWork.getHours(),
       endWork.getMinutes(),
@@ -536,7 +536,7 @@ export class AppointmentService {
     if (status !== AppointmentStatus.COMPLETED && status !== AppointmentStatus.CONFIRMED) {
       throw new BadRequestException('Only CONFIRMED or COMPLETED can you make it');
     }
-    const review = await this.reviewRepo.getReviewByAppointment(id)
+    const review = await this.reviewRepo.getReviewByAppointment(id);
     if (status === AppointmentStatus.COMPLETED && !review) {
       await this.notificaiton.create({
         title: 'appointment completed',

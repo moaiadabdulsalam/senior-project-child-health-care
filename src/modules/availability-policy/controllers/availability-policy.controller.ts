@@ -32,7 +32,4 @@ export class AvailabilityPolicyController {
     const { userId } = req.user;
     return this.availiablityPolicyService.updatePolicy(dto, userId);
   }
-
-
-   
 }

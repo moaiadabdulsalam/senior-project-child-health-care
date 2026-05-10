@@ -14,7 +14,7 @@ import { NotificationModule } from '../notification/notification.module';
 import { UploadModule } from '../upload/upload.module';
 
 @Module({
-  imports: [JwtModule.register({}), RedisModule, NotificationModule , UploadModule],
+  imports: [JwtModule.register({}), RedisModule, NotificationModule, UploadModule],
   controllers: [AuthController],
   providers: [
     ProfileDoctorRepository,

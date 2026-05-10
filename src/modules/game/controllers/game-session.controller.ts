@@ -14,7 +14,7 @@ export class GameSessionController {
 
   @Roles(Role.CHILD)
   @Post('/:id/start')
-  startGameSession( @Param('id') id: string, @Req() req) {
+  startGameSession(@Param('id') id: string, @Req() req) {
     const { childId, sessionId } = req.user;
     return this.gameSessionService.startGameSession(id, childId, sessionId);
   }

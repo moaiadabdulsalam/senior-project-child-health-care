@@ -20,23 +20,23 @@ export class GameSessionRepository {
     });
   }
 
-  async FinishGameSession(id : string,data : Prisma.GameSessionUncheckedUpdateInput ){
+  async FinishGameSession(id: string, data: Prisma.GameSessionUncheckedUpdateInput) {
     return this.prisma.gameSession.update({
-      where : {
-        id
+      where: {
+        id,
       },
-      data
-    })
+      data,
+    });
   }
 
-  async findActiveSessionByChildAndGame(childId : string , sessionId : string , gameId: string){
+  async findActiveSessionByChildAndGame(childId: string, sessionId: string, gameId: string) {
     return this.prisma.gameSession.findFirst({
-      where : {
+      where: {
         childId,
-        childAccessSessionId : sessionId,
+        childAccessSessionId: sessionId,
         gameId,
-        status : GameSessionStatus.IN_PROGRESS
-      }
-    })
+        status: GameSessionStatus.IN_PROGRESS,
+      },
+    });
   }
 }

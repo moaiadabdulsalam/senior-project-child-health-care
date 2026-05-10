@@ -4,7 +4,7 @@ import { ParseDatePipe } from './pipe/parse-date.pipe';
 
 @Global()
 @Module({
-  providers: [RoleGuard , ParseDatePipe],
-  exports: [RoleGuard , ParseDatePipe],
+  providers: [RoleGuard, ParseDatePipe],
+  exports: [RoleGuard, ParseDatePipe],
 })
 export class CoreModule {}

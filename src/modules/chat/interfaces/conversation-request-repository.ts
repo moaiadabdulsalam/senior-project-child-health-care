@@ -21,6 +21,5 @@ export interface IConversationRequestRepository {
     },
   ): Promise<ConversationRequest>;
 
-
   findByDoctorId(doctorId: string): Promise<ConversationRequest[]>;
 }

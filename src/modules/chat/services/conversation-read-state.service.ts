@@ -23,14 +23,12 @@ export class ConversationReadStateService {
   ) {}
 
   async markConversationAsRead(userId: string, conversationId: string) {
-    const conversation =
-      await this.conversationRepository.findById(conversationId);
+    const conversation = await this.conversationRepository.findById(conversationId);
 
     const validConversation = this.accessValidator.validateExists(conversation);
     this.accessValidator.validateUserIsParticipant(validConversation, userId);
 
-    const lastMessage =
-      await this.messageRepository.findLastMessage(conversationId);
+    const lastMessage = await this.messageRepository.findLastMessage(conversationId);
 
     if (!lastMessage) {
       return { success: true };

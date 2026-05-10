@@ -22,7 +22,7 @@ export class RegisterDoctorDto {
 
   @IsString()
   @IsOptional()
-  fullNameArabic?:string
+  fullNameArabic?: string;
 
   @IsString()
   phone: string;
@@ -33,7 +33,7 @@ export class RegisterDoctorDto {
 
   @IsString()
   @IsOptional()
-  specialityArabic?:string
+  specialityArabic?: string;
 
   @IsString()
   @IsOptional()
@@ -45,7 +45,7 @@ export class RegisterDoctorDto {
 
   @IsString()
   @IsOptional()
-  clinicAddressArabic?:string
+  clinicAddressArabic?: string;
 
   @IsString()
   @IsOptional()
@@ -54,10 +54,8 @@ export class RegisterDoctorDto {
   @IsString()
   @IsOptional()
   clinicName?: string;
-  
+
   @IsString()
   @IsOptional()
-  clinicNameArabic?:string
-
-  
+  clinicNameArabic?: string;
 }

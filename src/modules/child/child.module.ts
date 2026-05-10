@@ -6,9 +6,9 @@ import { AuthModule } from '../auth/auth.module';
 import { UploadModule } from '../upload/upload.module';
 
 @Module({
-  imports: [AuthModule , UploadModule],
-  providers: [ChildService, ChildRepository , ParseIntPipe],
+  imports: [AuthModule, UploadModule],
+  providers: [ChildService, ChildRepository, ParseIntPipe],
   controllers: [ChildController],
-  exports:[ChildService , ChildRepository]
+  exports: [ChildService, ChildRepository],
 })
 export class ChildModule {}

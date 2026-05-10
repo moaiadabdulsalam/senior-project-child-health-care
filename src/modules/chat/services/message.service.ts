@@ -20,8 +20,7 @@ export class MessageService {
   ) {}
 
   async sendTextMessage(userId: string, conversationId: string, text: string) {
-    const conversation =
-      await this.conversationRepository.findById(conversationId);
+    const conversation = await this.conversationRepository.findById(conversationId);
 
     const validConversation = this.accessValidator.validateExists(conversation);
     this.accessValidator.validateUserIsParticipant(validConversation, userId);
@@ -34,34 +33,21 @@ export class MessageService {
       text,
     });
 
-    await this.conversationRepository.updateLastMessageAt(
-      conversationId,
-      message.createdAt,
-    );
+    await this.conversationRepository.updateLastMessageAt(conversationId, message.createdAt);
 
     this.chatGateway.emitNewMessage(conversationId, message);
 
     return message;
   }
 
-  async getMessages(
-    userId: string,
-    conversationId: string,
-    page = 1,
-    limit = 30,
-  ) {
-    const conversation =
-      await this.conversationRepository.findById(conversationId);
+  async getMessages(userId: string, conversationId: string, page = 1, limit = 30) {
+    const conversation = await this.conversationRepository.findById(conversationId);
 
     const validConversation = this.accessValidator.validateExists(conversation);
     this.accessValidator.validateUserIsParticipant(validConversation, userId);
 
     const skip = (page - 1) * limit;
 
-    return this.messageRepository.findByConversationId(
-      conversationId,
-      skip,
-      limit,
-    );
+    return this.messageRepository.findByConversationId(conversationId, skip, limit);
   }
 }

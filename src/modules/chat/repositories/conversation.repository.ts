@@ -28,7 +28,7 @@ export class ConversationRepository implements IConversationRepository {
     });
   }
 
-  findMyConversations(userId: string , status : ConversationStatus) {
+  findMyConversations(userId: string, status: ConversationStatus) {
     return this.prisma.conversation.findMany({
       where: {
         status,

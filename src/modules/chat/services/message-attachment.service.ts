@@ -38,8 +38,7 @@ export class MessageAttachmentService {
       throw new BadRequestException('File is required');
     }
 
-    const conversation =
-      await this.conversationRepository.findById(conversationId);
+    const conversation = await this.conversationRepository.findById(conversationId);
 
     const validConversation = this.accessValidator.validateExists(conversation);
     this.accessValidator.validateUserIsParticipant(validConversation, userId);
@@ -67,10 +66,7 @@ export class MessageAttachmentService {
       attachmentType,
     });
 
-    await this.conversationRepository.updateLastMessageAt(
-      conversationId,
-      message.createdAt,
-    );
+    await this.conversationRepository.updateLastMessageAt(conversationId, message.createdAt);
 
     const payload = {
       ...message,
@@ -82,10 +78,7 @@ export class MessageAttachmentService {
     return payload;
   }
 
-  private resolveMessageType(
-    mimeType: string,
-    isReport: boolean,
-  ): MessageType {
+  private resolveMessageType(mimeType: string, isReport: boolean): MessageType {
     if (isReport) return MessageType.FILE;
 
     if (mimeType.startsWith('image/')) {
@@ -99,10 +92,7 @@ export class MessageAttachmentService {
     return MessageType.FILE;
   }
 
-  private resolveAttachmentType(
-    mimeType: string,
-    isReport: boolean,
-  ): AttachmentType {
+  private resolveAttachmentType(mimeType: string, isReport: boolean): AttachmentType {
     if (isReport) {
       return AttachmentType.REPORT;
     }

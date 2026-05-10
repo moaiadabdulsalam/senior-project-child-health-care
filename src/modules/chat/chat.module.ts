@@ -23,12 +23,8 @@ import { ChatGateway } from './gateway/chat.gateway';
 import { AuthModule } from '../auth/auth.module';
 
 @Module({
-  imports : [AuthModule],
-  controllers: [
-    ConversationRequestController,
-    ConversationController,
-    MessageController,
-  ],
+  imports: [AuthModule],
+  controllers: [ConversationRequestController, ConversationController, MessageController],
   providers: [
     ConversationRequestService,
     ConversationService,

@@ -3,8 +3,6 @@ import { Transform } from 'class-transformer';
 import { GameSessionStatus } from '@prisma/client';
 
 export class FinishGameSessionDto {
-
-
   @IsInt()
   @Transform(({ value }) => Number(value))
   @IsOptional()

@@ -8,9 +8,14 @@ import { AppointmentModule } from '../appointment/appointment.module';
 import { NotificationModule } from '../notification/notification.module';
 
 @Module({
-  imports: [AuthModule, AvailabilityPolicyModule, forwardRef(()=>AppointmentModule) , NotificationModule],
+  imports: [
+    AuthModule,
+    AvailabilityPolicyModule,
+    forwardRef(() => AppointmentModule),
+    NotificationModule,
+  ],
   providers: [ExceptionService, ExceptionRepository],
   controllers: [ExceptionController],
-  exports : [ExceptionRepository]
+  exports: [ExceptionRepository],
 })
 export class ExceptionModule {}

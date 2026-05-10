@@ -128,7 +128,7 @@ export class AppointmentController {
     return this.appointmentService.getSlotPerMonth(userId, date, type);
   }
 
-  @Throttle({default : {limit : 3 ,ttl : 50_000}})
+  @Throttle({ default: { limit: 3, ttl: 50_000 } })
   @Roles(Role.DOCTOR)
   @Patch('/:id')
   AppointmentStatus(
@@ -137,6 +137,6 @@ export class AppointmentController {
     @Param('id') id: string,
   ) {
     const { userId } = req.user;
-    return this.appointmentService.toggleAppointmentStatus(userId, status,id);
+    return this.appointmentService.toggleAppointmentStatus(userId, status, id);
   }
 }

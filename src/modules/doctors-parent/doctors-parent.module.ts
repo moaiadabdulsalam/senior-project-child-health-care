@@ -5,9 +5,9 @@ import { AuthModule } from '../auth/auth.module';
 import { DoctorsParentRepository } from './repositories/doctorsParent.repositories';
 
 @Module({
-  imports:[AuthModule],
-  providers: [DoctorsParentService, DoctorsParentRepository ,ParseIntPipe],
+  imports: [AuthModule],
+  providers: [DoctorsParentService, DoctorsParentRepository, ParseIntPipe],
   controllers: [DoctorsParentController],
-  exports : [DoctorsParentRepository]
+  exports: [DoctorsParentRepository],
 })
 export class DoctorsParentModule {}

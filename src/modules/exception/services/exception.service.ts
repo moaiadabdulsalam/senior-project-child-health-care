@@ -186,12 +186,12 @@ export class ExceptionService {
         throw new BadRequestException('There are appointments during this time range');
       }
     }
-    if(dto.type===ExceptionType.CUSTOM_AVAILABLE_HOURS){
-      const now = new Date()
-      const day = mpJsDayToWeek(now.getDay())
-      const isOff = policy.weeklyOffDays.includes(day)
-      if(!isOff){
-        throw new BadRequestException("only day off can make it In")
+    if (dto.type === ExceptionType.CUSTOM_AVAILABLE_HOURS) {
+      const now = new Date();
+      const day = mpJsDayToWeek(now.getDay());
+      const isOff = policy.weeklyOffDays.includes(day);
+      if (!isOff) {
+        throw new BadRequestException('only day off can make it In');
       }
     }
     const exceptions = await this.exceptionRepo.createException({
@@ -202,30 +202,29 @@ export class ExceptionService {
       profileDoctor: { connect: { id: doctorId } },
     });
 
-  if(dto.type!==ExceptionType.CUSTOM_AVAILABLE_HOURS){
-    const appointments = await this.appointmentRepo.getAppointment(doctorId);
-    const userIds = appointments.map((id) => id.profileParent.userId);
-    let message =
-      dto.type === ExceptionType.DAY_OFF
-        ? 'Doctor in Exception Today'
-        : `Doctor in exception from ${dto.startTime} to ${dto.endTime} `;
-    await this.notification.createManyForUsers(userIds, {
-      title: 'Doctor in Exception',
-      type: NotificationType.DOCTOR_IN_EXCEPTION,
-      message,
-      senderId: exceptions.profileDoctor.userId,
-    });
-  }
-  else {
-    await this.notification.createForRole(Role.PARENT,{
-      title: 'Doctor Available Today',
-      message: `A doctor ${exceptions.profileDoctor.fullName} is available Today`,
-      type: NotificationType.DOCTOR_DAY_IN,
-      data: {
-        doctorId,
-      },
-    })
-  }
+    if (dto.type !== ExceptionType.CUSTOM_AVAILABLE_HOURS) {
+      const appointments = await this.appointmentRepo.getAppointment(doctorId);
+      const userIds = appointments.map((id) => id.profileParent.userId);
+      const message =
+        dto.type === ExceptionType.DAY_OFF
+          ? 'Doctor in Exception Today'
+          : `Doctor in exception from ${dto.startTime} to ${dto.endTime} `;
+      await this.notification.createManyForUsers(userIds, {
+        title: 'Doctor in Exception',
+        type: NotificationType.DOCTOR_IN_EXCEPTION,
+        message,
+        senderId: exceptions.profileDoctor.userId,
+      });
+    } else {
+      await this.notification.createForRole(Role.PARENT, {
+        title: 'Doctor Available Today',
+        message: `A doctor ${exceptions.profileDoctor.fullName} is available Today`,
+        type: NotificationType.DOCTOR_DAY_IN,
+        data: {
+          doctorId,
+        },
+      });
+    }
     return {
       exceptions,
     };
@@ -233,8 +232,8 @@ export class ExceptionService {
 
   async updateException(dto: UpdateExcpetionDto, id: string, userId: string) {
     await this.getOne(id, userId);
-    let from: Date | undefined = dto.startTime ? new Date(dto.startTime) : undefined;
-    let to: Date | undefined = dto.endTime ? new Date(dto.endTime) : undefined;
+    const from: Date | undefined = dto.startTime ? new Date(dto.startTime) : undefined;
+    const to: Date | undefined = dto.endTime ? new Date(dto.endTime) : undefined;
 
     if (from && to) {
       if (isNaN(from.getTime()) || isNaN(to.getTime()))

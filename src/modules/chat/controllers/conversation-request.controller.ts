@@ -7,19 +7,15 @@ import { RoleGuard } from 'src/core/guard/role.guard';
 import { Roles } from 'src/core/decorator/role.decorator';
 import { Role } from '@prisma/client';
 
-@UseGuards(JwtAuthGuard , RoleGuard)
+@UseGuards(JwtAuthGuard, RoleGuard)
 @Controller('chat/requests')
 export class ConversationRequestController {
-  constructor(
-    private readonly conversationRequestService: ConversationRequestService,
-  ) {}
+  constructor(private readonly conversationRequestService: ConversationRequestService) {}
 
   @Roles(Role.DOCTOR)
   @Get()
   getDoctorRequests(@Req() req) {
-    return this.conversationRequestService.getDoctorRequests(
-      req.user.userId,
-    );
+    return this.conversationRequestService.getDoctorRequests(req.user.userId);
   }
   @Roles(Role.PARENT)
   @Post()
@@ -39,15 +35,7 @@ export class ConversationRequestController {
 
   @Roles(Role.DOCTOR)
   @Post(':id/reject')
-  reject(
-    @Req() req,
-    @Param('id') id: string,
-    @Body() dto: RejectConversationRequestDto,
-  ) {
-    return this.conversationRequestService.reject(
-      id,
-      req.user.userId,
-      dto.rejectedReason,
-    );
+  reject(@Req() req, @Param('id') id: string, @Body() dto: RejectConversationRequestDto) {
+    return this.conversationRequestService.reject(id, req.user.userId, dto.rejectedReason);
   }
 }

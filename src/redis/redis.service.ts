@@ -9,7 +9,6 @@ export class RedisService {
 
   constructor(private readonly config: ConfigService) {
     this.redis = new Redis(this.config.getOrThrow('REDIS_URL'));
-    
   }
   async set(key: string, value: string, ttl: number) {
     await this.redis.set(key, value, 'EX', ttl);

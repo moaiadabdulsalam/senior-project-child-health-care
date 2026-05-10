@@ -18,42 +18,29 @@ export class ConversationService {
   }
 
   async close(conversationId: string, userId: string) {
-    const conversation =
-      await this.conversationRepository.findById(conversationId);
+    const conversation = await this.conversationRepository.findById(conversationId);
 
     const validConversation = this.accessValidator.validateExists(conversation);
     this.accessValidator.validateUserIsParticipant(validConversation, userId);
 
-    
-    return this.conversationRepository.updateStatus(
-      conversationId,
-      ConversationStatus.CLOSED,
-    );
+    return this.conversationRepository.updateStatus(conversationId, ConversationStatus.CLOSED);
   }
 
   async archive(conversationId: string, userId: string) {
-    const conversation =
-      await this.conversationRepository.findById(conversationId);
+    const conversation = await this.conversationRepository.findById(conversationId);
 
     const validConversation = this.accessValidator.validateExists(conversation);
     this.accessValidator.validateUserIsParticipant(validConversation, userId);
 
-    return this.conversationRepository.updateStatus(
-      conversationId,
-      ConversationStatus.ARCHIVED,
-    );
+    return this.conversationRepository.updateStatus(conversationId, ConversationStatus.ARCHIVED);
   }
 
   async block(conversationId: string, userId: string) {
-    const conversation =
-      await this.conversationRepository.findById(conversationId);
+    const conversation = await this.conversationRepository.findById(conversationId);
 
     const validConversation = this.accessValidator.validateExists(conversation);
     this.accessValidator.validateUserIsParticipant(validConversation, userId);
 
-    return this.conversationRepository.updateStatus(
-      conversationId,
-      ConversationStatus.BLOCKED,
-    );
+    return this.conversationRepository.updateStatus(conversationId, ConversationStatus.BLOCKED);
   }
 }

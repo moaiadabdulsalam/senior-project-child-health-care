@@ -1,12 +1,5 @@
 import { Role } from '@prisma/client';
-import {
-  IsEmail,
-  IsEnum,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-  MinLength,
-} from 'class-validator';
+import { IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, MinLength } from 'class-validator';
 
 export class RegisterParentDto {
   @IsEmail()
@@ -29,8 +22,8 @@ export class RegisterParentDto {
 
   @IsString()
   @IsOptional()
-  fullNameArabic?:string
-  
+  fullNameArabic?: string;
+
   @IsString()
   phone: string;
 
@@ -39,5 +32,5 @@ export class RegisterParentDto {
 
   @IsString()
   @IsOptional()
-  addressArabic?:string
+  addressArabic?: string;
 }

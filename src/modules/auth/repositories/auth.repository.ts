@@ -32,7 +32,7 @@ export class AuthRepository {
         createdAt: true,
         updatedAt: true,
         isActive: true,
-        isProfileCompleted :true
+        isProfileCompleted: true,
       },
     });
   }
@@ -42,7 +42,7 @@ export class AuthRepository {
       where: {
         email,
         isActive: true,
-        isProfileCompleted :true
+        isProfileCompleted: true,
       },
       include: {
         profileDoctory: true,
@@ -51,7 +51,7 @@ export class AuthRepository {
     });
   }
 
-  async findAllUsers(where : Prisma.UserWhereInput) {
+  async findAllUsers(where: Prisma.UserWhereInput) {
     return this.prisma.user.findMany({ where, select: { id: true } });
   }
   async findUserById(userId: string): Promise<User | any> {
@@ -59,7 +59,7 @@ export class AuthRepository {
       where: {
         id: userId,
         isActive: true,
-        isProfileCompleted :true
+        isProfileCompleted: true,
       },
       include: {
         profileDoctory: true,
@@ -83,12 +83,12 @@ export class AuthRepository {
     });
   }
 
-  async updateUserInfo(id: string , data : Prisma.UserUpdateInput){
+  async updateUserInfo(id: string, data: Prisma.UserUpdateInput) {
     return this.prisma.user.update({
-      where : {
-        id
+      where: {
+        id,
       },
-      data
-    })
+      data,
+    });
   }
 }
