@@ -31,7 +31,7 @@ export class UploadService {
     if (!allowed.includes(file.mimetype)) {
       throw new BadRequestException('Only JPG, PNG, WEBP, SVG are allowed');
     }
-    let maxSize =  5;
+    let maxSize = 5;
     maxSize = maxSize * 1024 * 1024;
     if (file.size > maxSize) {
       throw new BadRequestException(`Max image size is ${maxSize / 1024 / 1024}MB`);
@@ -43,12 +43,10 @@ export class UploadService {
     const key = `${Date.now()}-${file.originalname}`;
 
     try {
-      const {error } = await this.client.storage
-        .from(this.bucket)
-        .upload(key, file.buffer, {
-          contentType: file.mimetype,
-          upsert: false,
-        });
+      const { error } = await this.client.storage.from(this.bucket).upload(key, file.buffer, {
+        contentType: file.mimetype,
+        upsert: false,
+      });
 
       if (error) {
         console.error('Supabase Storage Error:', error);

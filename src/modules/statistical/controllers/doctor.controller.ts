@@ -16,11 +16,7 @@ export class DoctorController {
     private readonly adminService: AdminService,
   ) {}
   @Get('revenue')
-  revenue(
-    @Req() req,
-    @Query('date') date?: Date,
-    @Query('type') type?: TypeOfRevenue,
-  ) {
+  revenue(@Req() req, @Query('date') date?: Date, @Query('type') type?: TypeOfRevenue) {
     const { userId } = req.user;
     return this.doctorService.revenues(userId, date, type);
   }

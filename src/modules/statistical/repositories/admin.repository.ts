@@ -36,15 +36,15 @@ export class AdminStatisticalRepository {
       by: ['speciality'],
       where: {
         speciality: {
-          notIn:[''],
+          notIn: [''],
         },
       },
       _count: { speciality: true },
-      orderBy : {
-        _count:{
-          speciality : 'desc'
-        }
-      }
+      orderBy: {
+        _count: {
+          speciality: 'desc',
+        },
+      },
     });
   }
 
@@ -54,7 +54,6 @@ export class AdminStatisticalRepository {
       _count: { gender: true },
     });
   }
-
 }
 const select = {
   id: true,

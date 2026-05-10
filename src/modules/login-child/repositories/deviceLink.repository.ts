@@ -13,13 +13,11 @@ export class DeviceLinkRepository {
   async findPendingDevices() {
     return this.prisma.deviceLinkRequest.findMany({
       where: {
-        status : DeviceLinkStatus.PENDING,
-       
-
+        status: DeviceLinkStatus.PENDING,
       },
-      orderBy : {
-        createdAt : 'desc'
-      }
+      orderBy: {
+        createdAt: 'desc',
+      },
     });
   }
 

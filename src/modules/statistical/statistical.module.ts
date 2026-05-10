@@ -13,7 +13,7 @@ import { DoctorStatisticalService } from './services/doctorStatistical.service';
 import { AppointmentModule } from '../appointment/appointment.module';
 
 @Module({
-  imports: [AuthModule , AppointmentModule],
+  imports: [AuthModule, AppointmentModule],
   providers: [
     ParentStatisticalService,
     DoctorStatisticalService,

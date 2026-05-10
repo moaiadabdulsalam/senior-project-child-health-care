@@ -7,7 +7,6 @@ import { NotificationQueryDto } from '../dtos/notification-query.dto';
 @Controller('notifications')
 @UseGuards(JwtAuthGuard)
 export class NotificationController {
-    
   constructor(private readonly notificationReaderService: NotificationReaderService) {}
 
   @Get('me')

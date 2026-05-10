@@ -5,8 +5,6 @@ import { RoleGuard } from 'src/core/guard/role.guard';
 import { Roles } from 'src/core/decorator/role.decorator';
 import { Role } from '@prisma/client';
 
-
-
 @Controller('admin')
 export class AdminController {
   constructor(private readonly adminService: AdminService) {}
@@ -36,9 +34,9 @@ export class AdminController {
     return this.adminService.genderDistribution();
   }
 
-  @Get('/test')///for testin server
+  @Get('/test') ///for testin server
   @Header('Content-Type', 'text/html; charset=utf-8')
-  test(){
+  test() {
     return `
       <!DOCTYPE html>
       <html lang="ar">

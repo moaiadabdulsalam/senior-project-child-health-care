@@ -40,9 +40,9 @@ export class ChildAccessGuard implements CanActivate {
       throw new UnauthorizedException('only for child');
     }
 
-    const where : Prisma.ChildAccessSessionWhereInput = {
-      id : payload.sessionId
-    }
+    const where: Prisma.ChildAccessSessionWhereInput = {
+      id: payload.sessionId,
+    };
     const session = await this.loginChildRepo.getSessionById(where);
 
     if (!session) {

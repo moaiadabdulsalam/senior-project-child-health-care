@@ -17,12 +17,12 @@ type AppointmentWithRelationChild = Prisma.AppointmentGetPayload<{
 export class DoctorStatisticalRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async revenuePerDate(from: Date, to: Date, doctorId: string ) {
+  async revenuePerDate(from: Date, to: Date, doctorId: string) {
     return await this.prisma.payment.aggregate({
       _sum: { amount: true },
       where: {
         doctorId,
-        status : PaymentStatus.SUCCESS,
+        status: PaymentStatus.SUCCESS,
         paidAt: {
           gte: from,
           lte: to,
@@ -43,7 +43,7 @@ export class DoctorStatisticalRepository {
         createdAt: true,
       },
     });
-  
+
     return first?.createdAt ?? null;
   }
 

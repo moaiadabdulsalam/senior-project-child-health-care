@@ -41,16 +41,15 @@ export class LoginChildController {
 
   @Roles(Role.PARENT)
   @Post('/qrDevice')
-  QrDevice(@Body() dto :LoginChildDto , @Req() req)  {
+  QrDevice(@Body() dto: LoginChildDto, @Req() req) {
     const { userId } = req.user;
     return this.QrDeviceService.createQr(dto, userId);
   }
   @Roles(Role.PARENT)
   @Post('/consumeQr')
-  consumeQr(@Body() dto :ConsumeQrDto)  {
+  consumeQr(@Body() dto: ConsumeQrDto) {
     return this.QrDeviceService.QrConsume(dto);
   }
-
 
   @Roles(Role.PARENT)
   @Patch('/:id/end')
@@ -65,7 +64,6 @@ export class LoginChildController {
     const { userId } = req.user;
     return this.loginChildService.extendChildSession(id, dto, userId);
   }
-
 
   @Roles(Role.PARENT)
   @Get('/activeSession')
@@ -85,7 +83,4 @@ export class LoginChildController {
       childId,
     );
   }
-
-
-  
 }

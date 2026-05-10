@@ -13,6 +13,6 @@ import { NotificationModule } from '../notification/notification.module';
   imports: [AuthModule, NotificationModule],
   providers: [DoctorsService, ParentsService, DoctorsRepository, ParentsRepository],
   controllers: [DoctorsController, ParentController],
-  exports : [DoctorsRepository]
+  exports: [DoctorsRepository],
 })
 export class UsersModule {}

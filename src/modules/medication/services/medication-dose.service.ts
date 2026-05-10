@@ -43,8 +43,8 @@ export class MedicationDoseService {
       medicationId: string;
       scheduledAt: Date;
     }[] = [];
-    let start = this.combineDateAndTime(medication.firstDoseDate, medication.firstDoseTime);
-    let end = new Date(medication.duration);
+    const start = this.combineDateAndTime(medication.firstDoseDate, medication.firstDoseTime);
+    const end = new Date(medication.duration);
     let current = new Date(start);
 
     while (current <= end) {

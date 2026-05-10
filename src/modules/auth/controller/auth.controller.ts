@@ -78,6 +78,8 @@ export class AuthController {
     return {
       user: result.user,
       accessToken: result.accessToken,
+      refreshToken: result.refreshToken,
+      expiresIn: result.expiresIn,
     };
   }
 
@@ -105,7 +107,11 @@ export class AuthController {
     const result = await this.authService.refresh(userId, refreshToken);
     this.cookieService.setRefreshToken(res, result.refreshToken);
 
-    return { accessToken: result.accessToken };
+    return {
+      accessToken: result.accessToken,
+      refreshToken: result.refreshToken,
+      expiresIn: result.expiresIn,
+    };
   }
 
   @UseGuards(JwtAuthGuard)

@@ -247,7 +247,6 @@ export class AuthService {
   }
 
   async login(dto: LoginDto) {
-
     const user = await this.userRepo.findUserByEmail(dto.email);
     if (!user) {
       throw new BadRequestException("email or password doesn't exist");
@@ -267,6 +266,7 @@ export class AuthService {
     return {
       accessToken,
       refreshToken,
+      expiresIn: 10 * 60,
       user: { email: user.email, role: user.role, isProfileCompleted: user.isProfileCompleted },
     };
   }
@@ -352,7 +352,11 @@ export class AuthService {
 
     await this.userRepo.updateUserRefreshToken(user.id, hashRefresh);
 
-    return { refreshToken: newRefreshToken, accessToken };
+    return {
+      refreshToken: newRefreshToken,
+      accessToken,
+      expiresIn: 10 * 60,
+    };
   }
 
   async resendOtp(dto: SendEmailDto) {

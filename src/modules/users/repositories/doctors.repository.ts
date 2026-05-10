@@ -31,7 +31,7 @@ export class DoctorsRepository {
   async getOneByEmail(email: string) {
     return await this.prisma.user.findUnique({
       where: { email },
-      select ,
+      select,
     });
   }
   async updateDoctorsActivity(id: string, data: Prisma.UserUpdateInput) {
@@ -90,9 +90,9 @@ const select = {
       clinicName: true,
       clinicNameArabic: true,
       status: true,
-      certificateKey:true,
-      certificateUrl:true,
-      averageRating : true,
+      certificateKey: true,
+      certificateUrl: true,
+      averageRating: true,
       reviewCount: true,
       createdAt: true,
       updatedAt: true,

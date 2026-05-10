@@ -68,49 +68,47 @@ export class DoctorStatisticalService {
       };
     }
 
-    let rev: { date: Date; revenue: Decimal }[] = [];
+    const rev: { date: Date; revenue: Decimal }[] = [];
 
     if (type === TypeOfRevenue.WEEKLY || (!date && !type)) {
-      
       const lastWeek = this.lastWeekAgo();
 
       for (let i = 0; i < 7; i++) {
-        const start = new Date(lastWeek)
+        const start = new Date(lastWeek);
         start.setDate(lastWeek.getDate() + i);
         start.setHours(0, 0, 0, 0);
 
         const end = new Date(start);
         end.setHours(23, 59, 59, 999);
-  
+
         const result = await this.doctorRepo.revenuePerDate(start, end, doctorId);
         if (result._sum.amount === null) {
           result._sum.amount = Prisma.Decimal(0);
         }
-        rev.push({ date: start, revenue: result._sum.amount ?? new Prisma.Decimal(0)});
+        rev.push({ date: start, revenue: result._sum.amount ?? new Prisma.Decimal(0) });
       }
       return rev;
     }
 
     if (type === TypeOfRevenue.MONTHLY) {
-      
       const revenue: { label: string; revenue: Decimal }[] = [];
       const currentYear = new Date().getFullYear();
-  
+
       for (let month = 0; month < 12; month++) {
         const start = new Date(currentYear, month, 1);
         start.setHours(0, 0, 0, 0);
-  
+
         const end = new Date(currentYear, month + 1, 0);
         end.setHours(23, 59, 59, 999);
-  
+
         const result = await this.doctorRepo.revenuePerDate(start, end, doctorId);
-  
+
         revenue.push({
           label: start.toLocaleString('en-US', { month: 'long' }),
           revenue: result._sum.amount ?? new Prisma.Decimal(0),
         });
       }
-  
+
       return revenue;
     }
     if (type === TypeOfRevenue.YEARLY) {
@@ -118,28 +116,28 @@ export class DoctorStatisticalService {
 
       const firstRevenueDate = await this.doctorRepo.findFirstRevenueDate(doctorId);
       const currentYear = new Date().getFullYear();
-  
+
       if (!firstRevenueDate) {
         return [];
       }
-  
+
       const startYear = firstRevenueDate.getFullYear();
-  
+
       for (let year = startYear; year <= currentYear; year++) {
         const start = new Date(year, 0, 1);
         start.setHours(0, 0, 0, 0);
-  
+
         const end = new Date(year, 11, 31);
         end.setHours(23, 59, 59, 999);
-  
+
         const result = await this.doctorRepo.revenuePerDate(start, end, doctorId);
-  
+
         revenue.push({
           label: String(year),
           revenue: result._sum.amount ?? new Prisma.Decimal(0),
         });
       }
-  
+
       return revenue;
     }
   }
@@ -171,5 +169,4 @@ export class DoctorStatisticalService {
     const doctorId = await this.checkUserAndProfileDoctor(userId);
     return this.doctorRepo.averagePatientAgeYears(doctorId);
   }
-  
 }

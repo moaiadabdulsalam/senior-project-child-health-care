@@ -2,7 +2,6 @@ import { DoctorStatus } from '@prisma/client';
 import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class RequireUpdateProfileDoctorDto {
-
   @IsNotEmpty()
   @IsString()
   fullName: string;
@@ -46,6 +45,4 @@ export class RequireUpdateProfileDoctorDto {
   @IsOptional()
   @IsString()
   clinicNameArabic?: string;
-
-
 }

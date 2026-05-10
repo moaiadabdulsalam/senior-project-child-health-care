@@ -91,7 +91,7 @@ export class QrDeviceService {
 
   async QrConsume(dto: ConsumeQrDto) {
     const pendingLinks = await this.deviceRepo.findPendingDevices();
-    
+
     let link: DeviceLinkRequest | null = null;
 
     for (const item of pendingLinks) {

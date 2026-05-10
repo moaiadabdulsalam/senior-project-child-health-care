@@ -2,10 +2,8 @@ import { Transform } from 'class-transformer';
 import { IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
 
 export class CreateReviewDto {
-
   @IsString()
-  appointmentId :string
-
+  appointmentId: string;
 
   @IsInt()
   @Transform(({ value }) => Number(value))

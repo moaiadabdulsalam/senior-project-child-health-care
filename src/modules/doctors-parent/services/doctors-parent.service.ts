@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import {  Prisma, Role } from '@prisma/client';
+import { Prisma, Role } from '@prisma/client';
 import { AuthRepository } from 'src/modules/auth/repositories/auth.repository';
 import { DoctorsParentRepository } from '../repositories/doctorsParent.repositories';
 
@@ -19,7 +19,6 @@ export class DoctorsParentService {
       throw new NotFoundException('parent profile not found');
     }
 
-
     return parentProfile.id;
   }
 
@@ -34,21 +33,33 @@ export class DoctorsParentService {
     }
 
     const skip = (page - 1) * limit;
+    const tokens = (search ?? '')
+      .replace(/[^\p{L}\p{N}]+/gu, ' ')
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 8);
+
+    const profileSearchWhere: Prisma.ProfileDoctorWhereInput =
+      tokens.length > 0
+        ? {
+            AND: tokens.map((token) => ({
+              OR: [
+                { fullName: { contains: token, mode: 'insensitive' } },
+                { fullNameArabic: { contains: token, mode: 'insensitive' } },
+                { speciality: { contains: token, mode: 'insensitive' } },
+                { specialityArabic: { contains: token, mode: 'insensitive' } },
+                { clinicName: { contains: token, mode: 'insensitive' } },
+                { clinicNameArabic: { contains: token, mode: 'insensitive' } },
+              ],
+            })),
+          }
+        : {};
 
     const where: Prisma.UserWhereInput = {
-      isActive:true,
-      profileDoctory: {
-        ...(search && {
-          fullName: {
-            contains: search,
-            mode: 'insensitive',
-          },
-          speciality: {
-            contains: search,
-            mode: 'insensitive',
-          },
-        }),
-      },
+      isActive: true,
+      role: Role.DOCTOR,
+      profileDoctory: profileSearchWhere,
     };
 
     const data = await this.drParentRepo.getAllDoctors(where, skip, limit);

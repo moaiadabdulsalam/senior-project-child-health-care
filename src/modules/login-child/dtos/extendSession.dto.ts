@@ -6,6 +6,6 @@ export class ExtendChildSessionDto {
   @IsInt()
   @Min(5)
   @Max(60)
-  @Transform(({value})=>Number(value))
+  @Transform(({ value }) => Number(value))
   extraMinutes: number;
 }

@@ -20,9 +20,6 @@ export class PaymentController {
 
   @Get('status/:appointmentId')
   async getStatus(@Param('appointmentId') appointmentId: string, @Req() req) {
-    return this.paymentService.getPaymentStatusByAppointment(
-      appointmentId,
-      req.user.userId,
-    );
+    return this.paymentService.getPaymentStatusByAppointment(appointmentId, req.user.userId);
   }
 }

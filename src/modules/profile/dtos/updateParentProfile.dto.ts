@@ -1,15 +1,14 @@
 import { IsOptional } from 'class-validator';
 
-
 export class UpdateParentProfileDto {
   @IsOptional()
   fullName?: string;
   @IsOptional()
   fullNameArabic?: string;
   @IsOptional()
-  address?:string
+  address?: string;
   @IsOptional()
-  addressArabic?:string
+  addressArabic?: string;
   @IsOptional()
-  phone? : string
+  phone?: string;
 }

@@ -2,7 +2,6 @@ import { DoctorStatus } from '@prisma/client';
 import { IsEnum, IsOptional } from 'class-validator';
 
 export class UpdateDoctorProfileDto {
-
   @IsOptional()
   fullName?: string;
   @IsOptional()
@@ -25,5 +24,4 @@ export class UpdateDoctorProfileDto {
   clinicName?: string;
   @IsOptional()
   clinicNameArabic?: string;
- 
 }

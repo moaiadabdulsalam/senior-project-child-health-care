@@ -40,10 +40,7 @@ export class NotificationRepository {
     });
   }
 
-  async update(
-    id: string,
-    data: Prisma.NotificationUpdateInput,
-  ): Promise<Notification> {
+  async update(id: string, data: Prisma.NotificationUpdateInput): Promise<Notification> {
     return this.prisma.notification.update({
       where: { id },
       data,

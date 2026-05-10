@@ -28,12 +28,12 @@ export class StripeWebhookService {
 
     switch (event.type) {
       case 'checkout.session.completed': {
-        await this.handleCheckoutSessionCompleted(event.data.object as Stripe.Checkout.Session);
+        await this.handleCheckoutSessionCompleted(event.data.object);
         break;
       }
 
       case 'checkout.session.expired': {
-        await this.handleCheckoutSessionExpired(event.data.object as Stripe.Checkout.Session);
+        await this.handleCheckoutSessionExpired(event.data.object);
         break;
       }
 
