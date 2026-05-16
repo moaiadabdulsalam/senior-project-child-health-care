@@ -24,6 +24,7 @@ import { GameModule } from './modules/game/game.module';
 import { LoginChildModule } from './modules/login-child/login-child.module';
 import { ReviewModule } from './modules/review/review.module';
 import { ChatModule } from './modules/chat/chat.module';
+import { AiFeaturesModule } from './modules/ai-features/ai-features.module';
 @Module({
   imports: [
     ScheduleModule.forRoot(),
@@ -57,6 +58,7 @@ import { ChatModule } from './modules/chat/chat.module';
     LoginChildModule,
     ReviewModule,
     ChatModule,
+    AiFeaturesModule,
   ],
   providers: [
     {
